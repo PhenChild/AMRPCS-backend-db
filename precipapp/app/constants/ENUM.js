@@ -1,0 +1,1 @@
+exports.ROLES = ['admin', 'observer', 'viewer', 'user'];

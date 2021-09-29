@@ -1,0 +1,16 @@
+version: '3.3'
+services:
+  pdb:
+    image: $DB_IMAGE:$DB_VERSION
+    container_name: precpostgres
+    restart: unless-stopped
+    ports:
+        - "5434:5432"
+    environment:
+        - POSTGRES_USER=$DB_USER
+        - POSTGRES_PASSWORD=$DB_PASSWORD
+        - POSTGRES_DB=postgres
+    volumes:
+        - ppostgres:$DB_CONTAINER_PATH
+volumes:
+  ppostgres:

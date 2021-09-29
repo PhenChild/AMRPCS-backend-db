@@ -1,0 +1,14 @@
+#!/bin/bash
+
+# Generate environment file
+## .ENV
+
+      ( echo "\n# Postgres Parameters" ; \
+        echo DB_IMAGE=postgres ; \
+        echo DB_VERSION=12.7 ; \
+        echo DB_NAME=precdb ; \
+        echo DB_USER=precdb ; \
+        echo DB_filter=.* ; \
+        echo DB_LOCAL_PATH=./data ; \
+        echo DB_CONTAINER_PATH=/var/lib/postgresql/data ; \
+        echo DB_PASSWORD=prec ) >> ./.env
