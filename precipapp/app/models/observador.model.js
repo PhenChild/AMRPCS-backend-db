@@ -15,7 +15,10 @@ module.exports = (sequelize, DataTypes) => {
     }
   };
   Observador.init({
-    enable: { type: DataTypes.BOOLEAN, defaultValue: 'true' },
+    state: {
+      type: DataTypes.CHAR,
+      defaultValue: 'A'
+    },
     idEstacion: {
       field: 'idEstacion',
       type: DataTypes.INTEGER,
@@ -23,6 +26,11 @@ module.exports = (sequelize, DataTypes) => {
     idUser: {
       field: 'idUser',
       type: DataTypes.INTEGER,
+      unique: true
+    },
+    isForSequia: {
+      field: 'is_sequia',
+      type: DataTypes.BOOLEAN,
     },
     audCreatedAt: {
       field: 'aud_created_at',

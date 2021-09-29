@@ -21,9 +21,9 @@ module.exports = (sequelize, DataTypes) => {
     direccion: DataTypes.STRING,
     referencias: DataTypes.STRING,
     foto: DataTypes.BLOB,
-    enable: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: 'true'
+    state: {
+      type: DataTypes.CHAR,
+      defaultValue: 'A'
     },
     idUbicacion: {
       field: 'idUbicacion',

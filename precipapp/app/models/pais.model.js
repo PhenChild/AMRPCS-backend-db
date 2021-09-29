@@ -16,9 +16,9 @@ module.exports = (sequelize, DataTypes) => {
     Pais.init({
         nombre: DataTypes.STRING,
         siglas: DataTypes.STRING(2),
-        enable: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: 'true'
+        state: {
+            type: DataTypes.CHAR,
+            defaultValue: 'A'
         },
         audCreatedAt: {
             field: 'aud_created_at',

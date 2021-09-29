@@ -10,17 +10,20 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-        Foto.belongsTo(models.Cuestionario, { foreignKey: 'idCuestionario', as: 'Cuestionario' })
+      Foto.belongsTo(models.Cuestionario, { foreignKey: 'idCuestionario', as: 'Cuestionario' })
     }
   };
   Foto.init({
     idCuestionario: {
-        field: 'idCuestionario',
-        type: DataTypes.INTEGER,
-        allowNull: false,
+      field: 'idCuestionario',
+      type: DataTypes.INTEGER,
+      allowNull: false,
     },
-    foto: { type: DataTypes.BLOB},
-    enable: { type: DataTypes.BOOLEAN, defaultValue: 'true' },
+    foto: { type: DataTypes.BLOB },
+    state: {
+      type: DataTypes.CHAR,
+      defaultValue: 'A'
+    },
     audCreatedAt: {
       field: 'aud_created_at',
       type: DataTypes.DATEONLY,

@@ -15,12 +15,12 @@ module.exports = (sequelize, DataTypes) => {
     };
     PrecAcum.init({
         fechaInicio: {field: 'fecha_inicio', type: DataTypes.DATEONLY},
-        fechaFin: {field: 'fecha_fin', type: DataTypes.DATEONLY},
+        fechaFin: {field: 'fecha_fin', type: DataTypes.DATE},
         valor: DataTypes.FLOAT,
         comentario: DataTypes.STRING,
-        enable: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: 'true'
+        state: {
+            type: DataTypes.CHAR,
+            defaultValue: 'A'
         },
         idObservador: {
             field: 'idObservador',

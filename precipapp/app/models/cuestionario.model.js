@@ -14,7 +14,7 @@ module.exports = (sequelize, DataTypes) => {
         }
     };
     Cuestionario.init({
-        fecha: {type: DataTypes.DATEONLY},
+        fecha: {type: DataTypes.DATE},
         respSuelo: {
             field: 'resp_suelo',
             type: DataTypes.INTEGER
@@ -39,11 +39,11 @@ module.exports = (sequelize, DataTypes) => {
             field: 'resp_gana',
             type: DataTypes.INTEGER
         },
-        total: {type: DataTypes.INTEGER},
+        total: {type: DataTypes.FLOAT},
         comentario: DataTypes.STRING,
-        enable: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: 'true'
+        state: {
+            type: DataTypes.CHAR,
+            defaultValue: 'A'
         },
         idObservador: {
             field: 'idObservador',

@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      // define association here
+      User.belongsTo(models.Pais, { foreignKey: 'idPais', as: 'Nacionalidad' })
     }
   };
   User.init({
@@ -21,10 +21,13 @@ module.exports = (sequelize, DataTypes) => {
     apellido: DataTypes.STRING,
     telefono: DataTypes.STRING,
     foto: DataTypes.BLOB,
-    nacionalidad: DataTypes.STRING,
-    enable: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: 'true'
+    idPais: {
+      field: 'idPais',
+      type: DataTypes.INTEGER,
+    },
+    state: {
+      type: DataTypes.CHAR,
+      defaultValue: 'A'
     },
     role: {
       type: DataTypes.ENUM(ROLES),

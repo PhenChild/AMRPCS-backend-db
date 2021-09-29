@@ -10,26 +10,28 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-        Division.belongsTo(models.Pais, { foreignKey: 'idPais', as: 'Pais' })
-        Division.belongsTo(models.Division, { foreignKey: 'idPadre', as: 'Padre' })
+      Division.belongsTo(models.Pais, { foreignKey: 'idPais', as: 'Pais' })
+      Division.belongsTo(models.Division, { foreignKey: 'idPadre', as: 'Padre' })
     }
   };
   Division.init({
     idPais: {
-        field: 'idPais',
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        unique: 'ubicacion'
+      field: 'idPais',
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      unique: 'ubicacion'
     },
     idPadre: {
-        field: 'idPadre',
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        unique: 'ubicacion'
+      field: 'idPadre',
+      type: DataTypes.INTEGER,
+      unique: 'ubicacion'
     },
-    nombre: { type: DataTypes.STRING, unique: 'ubicacion'},
-    nivel: { type: DataTypes.INTEGER},
-    enable: { type: DataTypes.BOOLEAN, defaultValue: 'true' },
+    nombre: { type: DataTypes.STRING, unique: 'ubicacion' },
+    nivel: { type: DataTypes.SMALLINT },
+    state: {
+      type: DataTypes.CHAR,
+      defaultValue: 'A'
+    },
     audCreatedAt: {
       field: 'aud_created_at',
       type: DataTypes.DATEONLY,

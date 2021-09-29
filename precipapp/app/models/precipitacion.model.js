@@ -14,12 +14,12 @@ module.exports = (sequelize, DataTypes) => {
         }
     };
     Precipitacion.init({
-        fecha: DataTypes.DATEONLY,
+        fecha: DataTypes.DATE,
         valor: DataTypes.FLOAT,
         comentario: DataTypes.STRING,
-        enable: {
-            type: DataTypes.BOOLEAN,
-            defaultValue: 'true'
+        state: {
+            type: DataTypes.CHAR,
+            defaultValue: 'A'
         },
         idObservador: {
             field: 'idObservador',
