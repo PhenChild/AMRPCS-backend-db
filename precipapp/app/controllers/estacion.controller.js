@@ -5,7 +5,7 @@ const estacion = require('../models').Estacion
 exports.getEstaciones = async function (req, res, next) {
   try{
   await estacion.findAll({
-    where: { enable: true }
+    where: { state: 'A' }
   })
     .then(estaciones => {
       res.json(estaciones)

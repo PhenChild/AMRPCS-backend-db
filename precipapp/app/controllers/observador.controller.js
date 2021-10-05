@@ -46,7 +46,7 @@ exports.getObservador = async function (req, res, next) {
     res.status(400).send({ message: error.message })
   }
 }
-
+/*
 exports.updateObserver = async function (req, res, next) {
   try {
     await Sequelize.sequelize.transaction(async (t) => {
@@ -60,6 +60,7 @@ exports.updateObserver = async function (req, res, next) {
     res.status(400).send({ message: error.message })
   }
 }
+*/
 /*
 exports.updatePass = async function (req, res, next) {
   try {

@@ -1,9 +1,26 @@
-var express = require('express');
-var router = express.Router();
+const express = require('express')
+const router = express.Router()
 
-/* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
-});
+const { authJwt } = require('../middleware')
+const user = require('../controllers/user.controller')
+const { verifySignUp } = require('../middleware')
 
-module.exports = router;
+router.get(
+  '/getAll',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.getAll)
+/*
+router.get(
+  '/delete/:userid',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.disableUser)
+
+router.post('/updateUser',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.updateUser)
+
+router.post('/updateRole',
+  [authJwt.verifyToken, authJwt.isAdmin, verifySignUp.checkRoleExisted],
+  user.updateRole)
+*/
+module.exports = router
