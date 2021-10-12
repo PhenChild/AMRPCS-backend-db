@@ -1,10 +1,10 @@
-const acumulados = require('../models').precacum
+const acumulados = require('../models').PrecAcum
 const Sequelize = require('../models')
 
 exports.getAcumulados = async function (req, res, next) {
   try {
     await acumulados.findAll({
-      where: { state: "a" },
+      where: { state: "A" },
       attributes: { exclude: ['state'] }
     })
       .then(acumulados => {
@@ -24,7 +24,6 @@ exports.newAcumulados = async function (req, res, next) {
     fecha_fin: Date.parse(req.body.fechaFin),
     valor: parseInt(req.body.valor),
     comentario: req.body.comentario,
-    state: 'a',
     idObservador: parseInt(req.body.idObservador)
   }).then(pais => {
     res.status(200).send({ message: 'Succesfully created' })
@@ -59,7 +58,7 @@ exports.disableAcumulados = async function (req, res, next) {
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const a = await acumulados.update({
-        state: "i"
+        state: "I"
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })

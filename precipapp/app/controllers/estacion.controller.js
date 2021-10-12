@@ -27,7 +27,6 @@ exports.createEstacion = async function (req, res, next) {
     altitud: parseFloat(req.body.altitud),
     direccion: req.body.direccion,
     referencia: req.body.referencia,
-    state: req.body.state,
     idUbicacion: parseInt(req.body.idUbicacion)
   }).then(variableEstacion => {
     res.status(200).send({ message: 'Succesfully created' })

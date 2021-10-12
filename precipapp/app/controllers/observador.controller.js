@@ -7,12 +7,10 @@ const bcrypt = require('bcryptjs')
 exports.getObservadores = async function (req, res, next) {
   try {
     await observer.findAll({
-      where: { state: 'a' },
+      where: { state: 'A' },
       include: [{
-        model: estacion, required: false
-      }, {
-        model: user, required: false, where: { state: 'a' }
-      }]
+        model: user, required: false}, {
+        model: estacion, required: false}]
     })
       .then(observadores => {
         res.json(observadores)
@@ -27,8 +25,8 @@ exports.getObservador = async function (req, res, next) {
   try {
     await observer.findOne({
       where: {
-        idUser: req.idUser,
-        state: 'a'
+        UserId: req.UserId,
+        state: 'A'
       },
       attributes: ['id'],
       include: [{
@@ -98,9 +96,8 @@ exports.updatePass = async function (req, res, next) {
 exports.createObservador = async (req, res) => {
   try {
     await observer.create({
-      idEstacion: req.body.idEstacion,
-      idUser: req.body.idUser,
-      state: 'a',
+      EstacionId: req.body.idEstacion,
+      UserId: req.body.idUser,
       is_sequia: (req.body.sequia == 'true')
     }).then(obs => {
       res.send({ message: 'Observer succesfully created!' })

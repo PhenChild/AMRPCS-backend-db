@@ -4,7 +4,7 @@ const Sequelize = require('../models')
 exports.getCuestionarios = async function (req, res, next) {
   try {
     await cuestionarios.findAll({
-      where: { state: "a" },
+      where: { state: "A" },
       attributes: { exclude: ['state'] }
     })
       .then(cuestionarios => {
@@ -27,8 +27,7 @@ exports.newCuestionario = async function (req, res, next) {
     resp_temp_prec: req.body.rtprec,
     resp_temps: req.body.rtemps,
     resp_gana: req.body.rgana,
-    comentario: req.body.comentario,  
-    state: "a",
+    comentario: req.body.comentario,
     idObserver: parseInt(req.body.idObserver)
   }).then(pais => {
     res.status(200).send({ message: 'Succesfully created' })
@@ -63,7 +62,7 @@ exports.disableCuestionario = async function (req, res, next) {
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const c = await cuestionarios.update({
-        state: "i"
+        state: "I"
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })

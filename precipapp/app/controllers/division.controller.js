@@ -1,10 +1,10 @@
-const divisiones = require('../models').division
+const divisiones = require('../models').Division
 const Sequelize = require('../models')
 
 exports.getDivisiones = async function (req, res, next) {
   try {
     await divisiones.findAll({
-      where: { state: "a" },
+      where: { state: "A" },
       attributes: { exclude: ['state'] }
     })
       .then(paises => {

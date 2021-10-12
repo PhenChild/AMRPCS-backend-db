@@ -4,7 +4,6 @@ const router = express.Router()
 const observador = require('../controllers/observador.controller')
 
 router.get('/getAll',
-  [authJwt.verifyToken, authJwt.isAdmin],
   observador.getObservadores)
 
 router.get(

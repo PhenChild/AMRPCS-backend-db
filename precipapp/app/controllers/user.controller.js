@@ -6,7 +6,7 @@ const estacion = require('../models').Estacion
 exports.getAll = async function (req, res, next) {
   try {
     await user.findAll({
-      where: { state: "a" },
+      where: { state: "A" },
       attributes: { exclude: ['state', 'password'] }
     })
       .then(user => {

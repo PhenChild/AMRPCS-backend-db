@@ -1,10 +1,10 @@
-const precipitaciones = require('../models').precipitacion
+const precipitaciones = require('../models').Precipitacion
 const Sequelize = require('../models')
 
 exports.getPrecipitaciones = async function (req, res, next) {
   try {
     await precipitaciones.findAll({
-      where: { state: "a" },
+      where: { state: "A" },
       attributes: { exclude: ['state'] }
     })
       .then(precipitaciones => {
@@ -23,7 +23,6 @@ exports.newPrecipitaciones = async function (req, res, next) {
     fecha: Date.parse(req.body.fecha),
     valor: parseInt(req.body.valor),
     comentario: req.body.comentario,
-    state: 'a',
     idObservador: parseInt(req.body.idObservador)
   }).then(precipitaciones => {
     res.status(200).send({ message: 'Succesfully created' })
@@ -58,7 +57,7 @@ exports.disablePrecipitaciones = async function (req, res, next) {
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const p = await precipitaciones.update({
-        state: "i"
+        state: "I"
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })

@@ -10,23 +10,14 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Observador.belongsTo(models.Estacion, { foreignKey: 'idEstacion', as: 'Estacion' })
-      Observador.belongsTo(models.User, { foreignKey: 'idUser', as: 'User' })
+      Observador.belongsTo(models.Estacion)
+      Observador.belongsTo(models.User)
     }
   };
   Observador.init({
     state: {
       type: DataTypes.CHAR,
       defaultValue: 'A'
-    },
-    idEstacion: {
-      field: 'idEstacion',
-      type: DataTypes.INTEGER,
-    },
-    idUser: {
-      field: 'idUser',
-      type: DataTypes.INTEGER,
-      unique: true
     },
     isForSequia: {
       field: 'is_sequia',

@@ -36,7 +36,7 @@ exports.signin = (req, res) => {
   User.findOne({
     where: {
       email: req.body.email,
-      enable: true
+      state: req.body.state
     }
   }).then(user => {
     if (!user) {
