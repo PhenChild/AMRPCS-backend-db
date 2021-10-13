@@ -3,6 +3,27 @@ const express = require('express')
 const router = express.Router()
 const observador = require('../controllers/observador.controller')
 
+
+/*---------------------------------------------------
+                    APP ENDPOINTS
+---------------------------------------------------*/
+router.get('/getEstacionObs',
+  [authJwt.verifyToken, authJwt.isObserver],
+  observador.getEstacionObs)
+
+router.patch(
+  '/update',
+  [authJwt.verifyToken],
+  observador.updateObserver)
+
+router.patch(
+  '/updatePass',
+  [authJwt.verifyToken],
+  observador.updatePass)
+
+/*----------------------------------------------------
+----------------------------------------------------*/
+
 router.get('/getAll',
   observador.getObservadores)
 
@@ -17,23 +38,11 @@ router.post(
   [authJwt.verifyToken, authJwt.isAdmin],
   observador.createObservador)
 
-router.get('/getEstacionObs',
-  [authJwt.verifyToken, authJwt.isObserver],
-  observador.getEstacionObs)
+
 /*
 router.get(
   '/getObsByEst/:codigo',
   [authJwt.verifyToken, authJwt.isAdmin],
   observador.getObservadoresPorEstacion)
-
-router.post(
-  '/update',
-  [authJwt.verifyToken],
-  observador.updateObserver)
-
-router.post(
-  '/updatePass',
-  [authJwt.verifyToken],
-  observador.updatePass)
 */
 module.exports = router

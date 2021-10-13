@@ -1,6 +1,36 @@
-const cuestionarios = require('../models').cuestionario
+const cuestionarios = require('../models').Cuestionario
 const Sequelize = require('../models')
 
+
+/*---------------------------------------------------
+                    APP ENDPOINTS
+---------------------------------------------------*/
+
+exports.newCuestionario = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      await cuestionarios.create({
+        fecha: Date.parse(req.body.fecha),
+        respSuelo: req.body.rsuelo,
+        respVeg: req.body.rveg,
+        respPrec: req.body.rprec,
+        respTempPrec: req.body.rtprec,
+        respTemps: req.body.rtemps,
+        respGana: req.body.rgana,
+        comentario: req.body.comentario,
+        idObservador: parseInt(req.obsId)
+      }, { transaction: t }).then(cuest => {
+        res.status(200).send({ message: 'Succesfully created' })
+      })
+    })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+/*----------------------------------------------------
+----------------------------------------------------*/
 exports.getCuestionarios = async function (req, res, next) {
   try {
     await cuestionarios.findAll({
@@ -16,26 +46,6 @@ exports.getCuestionarios = async function (req, res, next) {
   }
 }
 
-exports.newCuestionario = async function (req, res, next) {
-  try{
-  console.log(req.body)
-  await cuestionarios.create({
-    fecha: Date.parse(req.body.fecha),
-    resp_suelo: req.body.rsuelo,
-    resp_veg: req.body.rveg,
-    resp_prec: req.body.rprec,
-    resp_temp_prec: req.body.rtprec,
-    resp_temps: req.body.rtemps,
-    resp_gana: req.body.rgana,
-    comentario: req.body.comentario,
-    idObserver: parseInt(req.body.idObserver)
-  }).then(pais => {
-    res.status(200).send({ message: 'Succesfully created' })
-  }).catch(err => res.status(419).send({ message: err.message }))
-} catch (error) {
-  res.status(400).send({ message: error.message })
-}
-}
 /*
 exports.updatePais = async function (req, res, next) {
   try {

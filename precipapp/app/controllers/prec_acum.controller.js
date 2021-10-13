@@ -1,6 +1,31 @@
 const acumulados = require('../models').PrecAcum
 const Sequelize = require('../models')
 
+/*---------------------------------------------------
+                    APP ENDPOINTS
+---------------------------------------------------*/
+
+exports.newAcumulados = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      await acumulados.create({
+        fechaInicio: Date.parse(req.body.fechaInicio),
+        fechaFin: Date.parse(req.body.fechaFin),
+        valor: parseFloat(req.body.valor),
+        comentario: req.body.comentario,
+        idObservador: parseInt(req.obsId)
+      }, { transaction: t }).then(acum => {
+        res.status(200).send({ message: 'Succesfully created' })
+      })
+    })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+/*----------------------------------------------------
+----------------------------------------------------*/
 exports.getAcumulados = async function (req, res, next) {
   try {
     await acumulados.findAll({
@@ -16,22 +41,6 @@ exports.getAcumulados = async function (req, res, next) {
   }
 }
 
-exports.newAcumulados = async function (req, res, next) {
-  try{
-  console.log(req.body)
-  await acumulados.create({
-    fecha_inicio: Date.parse(req.body.fechaInicio),
-    fecha_fin: Date.parse(req.body.fechaFin),
-    valor: parseInt(req.body.valor),
-    comentario: req.body.comentario,
-    idObservador: parseInt(req.body.idObservador)
-  }).then(pais => {
-    res.status(200).send({ message: 'Succesfully created' })
-  }).catch(err => res.status(419).send({ message: err.message }))
-} catch (error) {
-  res.status(400).send({ message: error.message })
-}
-}
 /*
 exports.updatePais = async function (req, res, next) {
   try {

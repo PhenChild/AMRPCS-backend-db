@@ -35,6 +35,53 @@ exports.getEstacionObs = async function (req, res, next) {
 }
 
 
+exports.updateObserver = async function (req, res, next) {
+  try {
+    await Sequelize.sequelize.transaction(async (t) => {
+      const usr = await user.update(req.body, {
+        where: { id: req.userId }
+      }, { transaction: t })
+      return usr
+    })
+    res.status(200).send({ message: 'Succesfully updated' })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+
+exports.updatePass = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      const usr = await user.findOne({
+        where: { id: req.userId }
+      }, { transaction: t }).then(usr => {
+        const passwordIsValid = bcrypt.compareSync(
+          req.body.password,
+          usr.password
+        )
+        if (!passwordIsValid) {
+          return res.status(401).send({
+            message: 'Invalid Old Password!'
+          })
+        }
+        user.update({
+          password: bcrypt.hashSync(req.body.newpassword, 8),
+        }, {
+          where: { id: req.userId }
+        }, { transaction: t })
+      }).catch(err => {
+        res.status(400).send({ message: err.message })
+      })
+      return usr
+    })
+    res.status(200).send({ message: 'Succesfully updated' })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
 /*----------------------------------------------------
 ----------------------------------------------------*/
 
@@ -80,54 +127,8 @@ exports.getObservador = async function (req, res, next) {
     res.status(400).send({ message: error.message })
   }
 }
-/*
-exports.updateObserver = async function (req, res, next) {
-  try {
-    await Sequelize.sequelize.transaction(async (t) => {
-      const usr = await user.update(req.body, {
-        where: { id: req.idUser }
-      }, { transaction: t })
-      return usr
-    })
-    res.status(200).send({ message: 'Succesfully updated' })
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-*/
-/*
-exports.updatePass = async function (req, res, next) {
-  try {
-    console.log(req.body)
-    await Sequelize.sequelize.transaction(async (t) => {
-      const usr = await user.findOne({
-        where: { id: req.userId }
-      }, { transaction: t }).then(usr => {
-        const passwordIsValid = bcrypt.compareSync(
-          req.body.password,
-          usr.password
-        )
-        if (!passwordIsValid) {
-          return res.status(401).send({
-            message: 'Invalid Old Password!'
-          })
-        }
-        user.update({
-          password: bcrypt.hashSync(req.body.newpassword, 8),
-        }, {
-          where: { id: req.userId }
-        }, { transaction: t })
-      }).catch(err => {
-        res.status(400).send({ message: err.message })
-      })
-      return usr
-    })
-    res.status(200).send({ message: 'Succesfully updated' })
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-*/
+
+
 
 exports.createObservador = async (req, res) => {
   try {
