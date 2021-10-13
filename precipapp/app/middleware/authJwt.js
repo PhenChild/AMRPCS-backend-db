@@ -51,7 +51,7 @@ isAdmin = (req, res, next) => {
 // eslint-disable-next-line no-undef
 isAdminByEmail = (req, res, next) => {
   try {
-    console.log(req.body)
+    console.log("Aquí ${req.body}")
     const e = req.body.email
     User.findOne({
       where: {
@@ -79,7 +79,7 @@ isObserver = (req, res, next) => {
   try {
     Observer.findOne({
       where: {
-        UserId: req.userId,
+        idUser: req.userId,
         state: 'A'
       }
     }).then(obs => {
@@ -136,28 +136,3 @@ const authJwt = {
   isObserver: isObserver
 }
 module.exports = authJwt
-
-// isAdmin = (req, res, next) => {
-//   User.findByPk(req.userId).then(user => {
-//     if (user.role === "admin") {
-//       next();
-//       return;
-//     }
-//     res.status(403).send({
-//       message: "Require Admin Role!"
-//     });
-//     return;
-//   });
-// };
-
-// isObserver = (req, res, next) => {
-//   User.findByPk(req.userId).then(user => {
-//     if (user.role === "observer") {
-//       next();
-//       return;
-//     }
-//     res.status(403).send({
-//       message: "Require Observer Role!"
-//     });
-//   });
-// };

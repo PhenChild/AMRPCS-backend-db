@@ -10,17 +10,21 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      Estacion.belongsTo(models.Division, { foreignKey: 'idUbicacion', as: 'Ubicacion' })
+      Estacion.belongsTo(models.Division, { foreignKey: 'idUbicacion'})
     }
   };
   Estacion.init({
-    codigo: { type: DataTypes.STRING, unique: true },
+    codigo: { type: DataTypes.STRING(7), unique: true },
     nombre: DataTypes.STRING,
     posicion: DataTypes.GEOMETRY,
     altitud: DataTypes.FLOAT,
     direccion: DataTypes.STRING,
     referencias: DataTypes.STRING,
     foto: DataTypes.BLOB,
+    hasPluviometro: {
+      field: 'tiene_pluv',
+      type: DataTypes.BOOLEAN,
+    },
     state: {
       type: DataTypes.CHAR,
       defaultValue: 'A'

@@ -4,13 +4,49 @@ const user = require('../models').User
 const Sequelize = require('../models')
 const bcrypt = require('bcryptjs')
 
+
+/*---------------------------------------------------
+                    APP ENDPOINTS
+---------------------------------------------------*/
+exports.getEstacionObs = async function (req, res, next) {
+  try {
+    await observer.findOne({
+      where: { id: req.obsId },
+      attributes: [],
+      include: {
+        model: estacion, required: true, attributes: ['codigo', 'nombre',
+          'posicion', 'altitud', 'direccion', 'referencias'], as: 'Estacion'
+      }
+    }).then(obs => {
+      var json = {
+        codigo: obs.Estacion.codigo,
+        nombre: obs.Estacion.nombre,
+        latitud: obs.Estacion.posicion.coordinates[0],
+        longitud: obs.Estacion.posicion.coordinates[1],
+        altitud: obs.Estacion.altitud,
+        direccion: obs.Estacion.direccion,
+        referencias: obs.Estacion.referencias
+      }
+      res.status(200).send(json)
+    })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+
+/*----------------------------------------------------
+----------------------------------------------------*/
+
 exports.getObservadores = async function (req, res, next) {
   try {
     await observer.findAll({
       where: { state: 'A' },
       include: [{
-        model: user, required: false}, {
-        model: estacion, required: false}]
+        model: user, required: false
+      }, {
+        model: estacion, required: false
+      }]
     })
       .then(observadores => {
         res.json(observadores)
@@ -107,6 +143,9 @@ exports.createObservador = async (req, res) => {
     res.status(400).send({ message: error.message })
   }
 }
+
+
+
 /*
 exports.getObservadoresPorEstacion = async (req, res) => {
   try {
@@ -125,21 +164,4 @@ exports.getObservadoresPorEstacion = async (req, res) => {
     res.status(400).send({ message: error.message })
   }
 }
-
-exports.getEstacionPorObs = async function (req, res, next) {
-  try {
-    await observer.findOne({
-      where: { UserId: req.userId },
-      attributes: ['id'],
-      include: {
-        model: estacion, required: true, attributes: ['codigo', 'nombreEstacion', 'posicion']
-      }
-    }).then(obs => {
-      res.json(obs)
-    }).catch(err => res.status(500).send({
-      message: err
-    }))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
 }*/

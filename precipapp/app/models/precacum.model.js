@@ -10,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
          * The `models/index` file will call this method automatically.
          */
         static associate(models) {
-            PrecAcum.belongsTo(models.Observador, { foreignKey: 'idObservador', as: 'Observador' })
+            PrecAcum.belongsTo(models.Observador, { foreignKey: 'idObservador'})
         }
     };
     PrecAcum.init({

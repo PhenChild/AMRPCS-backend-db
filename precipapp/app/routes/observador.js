@@ -16,15 +16,15 @@ router.post(
   '/new',
   [authJwt.verifyToken, authJwt.isAdmin],
   observador.createObservador)
+
+router.get('/getEstacionObs',
+  [authJwt.verifyToken, authJwt.isObserver],
+  observador.getEstacionObs)
 /*
 router.get(
   '/getObsByEst/:codigo',
   [authJwt.verifyToken, authJwt.isAdmin],
   observador.getObservadoresPorEstacion)
-
-router.get('/getEstacionPorObs',
-  [authJwt.verifyToken, authJwt.isObserver],
-  observador.getEstacionPorObs)
 
 router.post(
   '/update',
