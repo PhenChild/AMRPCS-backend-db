@@ -15,7 +15,7 @@ exports.getEstacionObs = async function (req, res, next) {
       attributes: [],
       include: [{
         model: estacion,
-        attributes: ['id','codigo','nombre','posicion','altitud','direccion','referencias']
+        attributes: ['id','codigo','nombre','posicion','altitud','direccion','referencias', 'hasPluviometro']
       }]
     }).then(obs => {
       res.status(200).send(obs)

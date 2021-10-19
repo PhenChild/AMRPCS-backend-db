@@ -1,4 +1,5 @@
 const cuestionarios = require('../models').Cuestionario
+const fotos = require('../models').Foto
 const Sequelize = require('../models')
 
 
@@ -9,6 +10,7 @@ const Sequelize = require('../models')
 exports.newCuestionario = async function (req, res, next) {
   try {
     console.log(req.body)
+    let idC
     await Sequelize.sequelize.transaction(async (t) => {
       await cuestionarios.create({
         fecha: Date.parse(req.body.fecha),
@@ -21,8 +23,32 @@ exports.newCuestionario = async function (req, res, next) {
         comentario: req.body.comentario,
         idObservador: parseInt(req.obsId)
       }, { transaction: t }).then(cuest => {
-        res.status(200).send({ id: cuest.id })
-      })
+        try {
+          fotos.create({
+            idCuestionario: parseInt(cuest.id),
+            foto: Buffer.from(req.body.img1, 'hex')
+          }).then(foto => {
+            fotos.create({
+              idCuestionario: parseInt(cuest.id),
+              foto: Buffer.from(req.body.img2, 'hex')
+            }).then(foto => {
+              fotos.create({
+                idCuestionario: parseInt(cuest.id),
+                foto: Buffer.from(req.body.img3, 'hex')
+              }).then(foto => {
+                fotos.create({
+                  idCuestionario: parseInt(cuest.id),
+                  foto: Buffer.from(req.body.img4, 'hex')
+                }).then(foto => {
+                  res.status(200).send({ message: 'Succesfully created' })
+                }).catch(err => res.status(419).send({ message: err.message }))
+              }).catch(err => res.status(419).send({ message: err.message }))
+            }).catch(err => res.status(419).send({ message: err.message }))
+          }).catch(err => res.status(419).send({ message: err.message }))
+        }
+        catch (error) {
+          res.status(400).send({ message: error.message })
+      }})
     })
   } catch (error) {
     res.status(400).send({ message: error.message })

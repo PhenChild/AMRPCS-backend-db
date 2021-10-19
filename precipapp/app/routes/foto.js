@@ -9,7 +9,7 @@ router.get('/getAll',
     foto.getFotos)
 
 router.post('/new',
-    upload.single('foto'),
+    upload.single('z'),
     foto.createFoto)
 
 module.exports = router
