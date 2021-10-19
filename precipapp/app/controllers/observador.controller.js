@@ -10,12 +10,13 @@ const bcrypt = require('bcryptjs')
 ---------------------------------------------------*/
 exports.getEstacionObs = async function (req, res, next) {
   try {
-    console.log(req)
     await observer.findAll({
       where: { idUser: req.userId },
-      include: {
-        model: estacion
-      }
+      attributes: [],
+      include: [{
+        model: estacion,
+        attributes: ['id','codigo','nombre','posicion','altitud','direccion','referencias']
+      }]
     }).then(obs => {
       res.status(200).send(obs)
     })

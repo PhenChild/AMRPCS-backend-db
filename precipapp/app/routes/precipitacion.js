@@ -1,13 +1,14 @@
 const express = require('express')
 const router = express.Router()
 const { authJwt } = require('../middleware')
+const { obsEstacion } = require('../middleware')
 const precipitacion = require('../controllers/precipitacion.controller')
 
 /*---------------------------------------------------
                     APP ENDPOINTS
 ---------------------------------------------------*/
 router.post('/new',
-  [authJwt.verifyToken, authJwt.isObserver],
+  [authJwt.verifyToken, obsEstacion.obsByEst],
   precipitacion.newPrecipitacion)
 
 

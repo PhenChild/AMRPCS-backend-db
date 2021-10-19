@@ -35,7 +35,7 @@ exports.signin = (req, res) => {
       })
     }
     const token = jwt.sign({ id: user.id }, config.secret, {
-      expiresIn: '1800s' // 30 minutos
+      expiresIn: '365d' // 365 dias
     })
     const userRole = user.role.toUpperCase()
     console.log(user.Pais)

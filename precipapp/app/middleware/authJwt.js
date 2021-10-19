@@ -44,14 +44,13 @@ isObserver = (req, res, next) => {
         state: 'A'
       }
     }).then(obs => {
-      if (obs) {
-        req.obsId = obs.id
-        next()
-        return
+      if (!obs) {
+        res.status(403).send({
+          message: 'Require Observer Role!'
+        })
       }
-      res.status(403).send({
-        message: 'Require Observer Role!'
-      })
+      next()
+      return
     }).catch(err => { res.status(400).send({ message: err.message }) })
   } catch (error) {
     res.status(400).send({ message: error.message })

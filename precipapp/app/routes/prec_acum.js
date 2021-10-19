@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { authJwt } = require('../middleware')
+const { obsEstacion } = require('../middleware')
 const acumulado = require('../controllers/prec_acum.controller')
 
 
@@ -9,7 +10,7 @@ const acumulado = require('../controllers/prec_acum.controller')
 ---------------------------------------------------*/
 
 router.post('/new',
-  [authJwt.verifyToken, authJwt.isObserver],
+  [authJwt.verifyToken, obsEstacion.obsByEst],
   acumulado.newAcumulados)
 
 /*----------------------------------------------------
