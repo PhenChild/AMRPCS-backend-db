@@ -8,6 +8,7 @@ const Sequelize = require('../models')
 exports.newPrecipitacion = async function (req, res, next) {
   try {
     console.log(req.body)
+    console.log(Date.parse(req.body.fecha))
     await Sequelize.sequelize.transaction(async (t) => {
       await precipitaciones.create({
         fecha: Date.parse(req.body.fecha),

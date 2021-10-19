@@ -21,7 +21,7 @@ exports.newCuestionario = async function (req, res, next) {
         comentario: req.body.comentario,
         idObservador: parseInt(req.obsId)
       }, { transaction: t }).then(cuest => {
-        res.status(200).send({ message: 'Succesfully created' })
+        res.status(200).send({ id: cuest.id })
       })
     })
   } catch (error) {

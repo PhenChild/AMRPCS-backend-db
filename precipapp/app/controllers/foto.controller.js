@@ -21,7 +21,7 @@ exports.createFoto = async function (req, res, next) {
     console.log(req.body)
     await fotos.create({
       idCuestionario: parseInt(req.body.idCuestionario),
-      foto: Buffer.from(req.body.foto)
+      foto: Buffer.from(req.file.buffer)
     }).then(foto => {
       res.status(200).send({ message: 'Succesfully created' })
     }).catch(err => res.status(419).send({ message: err.message }))

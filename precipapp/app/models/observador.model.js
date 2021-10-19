@@ -25,8 +25,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     idUser: {
       field: 'idUser',
-      type: DataTypes.INTEGER,
-      unique: true
+      type: DataTypes.INTEGER
     },
     audCreatedAt: {
       field: 'aud_created_at',

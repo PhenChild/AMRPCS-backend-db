@@ -10,24 +10,14 @@ const bcrypt = require('bcryptjs')
 ---------------------------------------------------*/
 exports.getEstacionObs = async function (req, res, next) {
   try {
-    await observer.findOne({
-      where: { id: req.obsId },
-      attributes: [],
+    console.log(req)
+    await observer.findAll({
+      where: { idUser: req.userId },
       include: {
-        model: estacion, required: true, attributes: ['codigo', 'nombre',
-          'posicion', 'altitud', 'direccion', 'referencias'], as: 'Estacion'
+        model: estacion
       }
     }).then(obs => {
-      var json = {
-        codigo: obs.Estacion.codigo,
-        nombre: obs.Estacion.nombre,
-        latitud: obs.Estacion.posicion.coordinates[0],
-        longitud: obs.Estacion.posicion.coordinates[1],
-        altitud: obs.Estacion.altitud,
-        direccion: obs.Estacion.direccion,
-        referencias: obs.Estacion.referencias
-      }
-      res.status(200).send(json)
+      res.status(200).send(obs)
     })
   } catch (error) {
     res.status(400).send({ message: error.message })

@@ -45,6 +45,7 @@ exports.signin = (req, res) => {
       nombre: user.nombre,
       apellido: user.apellido,
       telefono: user.telefono,
+      role: user.role,
       pais: user.Pais.nombre,
       token: token
     }
