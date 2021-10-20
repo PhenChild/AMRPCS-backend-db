@@ -16,7 +16,7 @@ module.exports = (sequelize, DataTypes) => {
     Precipitacion.init({
         fecha: DataTypes.DATE,
         valor: DataTypes.FLOAT,
-        comentario: DataTypes.STRING,
+        comentario: DataTypes.STRING(300),
         state: {
             type: DataTypes.CHAR,
             defaultValue: 'A'

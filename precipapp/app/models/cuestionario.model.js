@@ -40,7 +40,7 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.INTEGER
         },
         total: {type: DataTypes.FLOAT},
-        comentario: DataTypes.STRING,
+        comentario: DataTypes.STRING(300),
         state: {
             type: DataTypes.CHAR,
             defaultValue: 'A'
