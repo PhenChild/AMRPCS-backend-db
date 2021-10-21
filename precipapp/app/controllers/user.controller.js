@@ -17,6 +17,22 @@ exports.getAll = async function (req, res, next) {
     res.status(400).send({ message: error.message })
   }
 }
+
+exports.getImage = async function (req, res, next) {
+  try {
+    await user.findOne({
+      where: { id: req.userId },
+      attributes: ['foto']
+    })
+      .then(user => {
+        res.contentType('image/jpeg');
+        res.send(user.foto)
+      })
+      .catch(err => res.status(419).send({ message: err.message }))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
 /*
 exports.disableUser = async function (req, res, next) {
   try {
@@ -50,31 +66,48 @@ exports.disableUser = async function (req, res, next) {
     res.status(400).send({ message: error.message })
   }
 }
+*/
 
-exports.updateRole = async function (req, res, next) {
+exports.updateUser = async function (req, res, next) {
   try {
+    console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const u = await user.update({
-        role: req.body.role
+        email: req.body.email,
+        nombre: req.body.nombre,
+        apellido: req.body.apellido,
+        telefono: req.body.telefono
       }, {
         where: {
-          id: req.body.usuario
+          id: parseInt(req.body.id)
         },
         returning: true,
         plain: true
       }, { transaction: t })
-      console.log('salida ' + u[1].id)
-      if (req.body.role == 'observer') {
-        await observer.create({
-          EstacionCodigo: req.body.estacion,
-          UserId: u[1].id
-        }, { transaction: t })
-      }
-      return u
     })
     res.status(200).send({ message: 'Succesfully updated' })
   } catch (error) {
     res.status(419).send({ message: error.message })
   }
 }
-*/
+
+exports.updateImage = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      const u = await user.update({
+        foto: Buffer.from(req.file.buffer)
+      }, {
+        where: {
+          id: parseInt(req.body.idUser)
+        },
+        returning: true,
+        plain: true
+      }, { transaction: t })
+    })
+    res.status(200).send({ message: 'Succesfully updated' })
+  } catch (error) {
+    console.log(error.message)
+    res.status(419).send({ message: error.message })
+  }
+}
