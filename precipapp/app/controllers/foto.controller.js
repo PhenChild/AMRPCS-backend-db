@@ -18,7 +18,7 @@ exports.getFotos = async function (req, res, next) {
 
 exports.createFoto = async function (req, res, next) {
     try{
-    console.log(req.body)
+    console.log(req.files)
     await fotos.create({
       idCuestionario: parseInt(req.body.idCuestionario),
       foto: Buffer.from(req.file.buffer)

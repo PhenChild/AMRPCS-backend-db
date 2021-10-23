@@ -3,12 +3,14 @@ const router = express.Router()
 const { authJwt } = require('../middleware')
 const { obsEstacion } = require('../middleware')
 const cuestionario = require('../controllers/cuestionario.controller')
+const multer = require('multer');
+const upload = multer({ storage: multer.memoryStorage() })
 
 /*----------------------------------------------------
           APP ENDPOINTS
 ----------------------------------------------------*/
 router.post('/new',
-  [authJwt.verifyToken, obsEstacion.obsByEst],
+  upload.array('img', 4),
   cuestionario.newCuestionario)
 
 /*----------------------------------------------------

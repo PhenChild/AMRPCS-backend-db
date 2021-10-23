@@ -2,6 +2,7 @@ const Sequelize = require('../models')
 const user = require('../models').User
 const observer = require('../models').Observador
 const estacion = require('../models').Estacion
+const bcrypt = require('bcryptjs')
 
 exports.getAll = async function (req, res, next) {
   try {
@@ -79,7 +80,27 @@ exports.updateUser = async function (req, res, next) {
         telefono: req.body.telefono
       }, {
         where: {
-          id: parseInt(req.body.id)
+          id: parseInt(req.userId)
+        },
+        returning: true,
+        plain: true
+      }, { transaction: t })
+    })
+    res.status(200).send({ message: 'Succesfully updated' })
+  } catch (error) {
+    res.status(419).send({ message: error.message })
+  }
+}
+
+exports.updateUserPass = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      const u = await user.update({
+        password: bcrypt.hashSync(req.body.newpassword, 8)
+      }, {
+        where: {
+          id: parseInt(req.userId)
         },
         returning: true,
         plain: true
@@ -93,7 +114,7 @@ exports.updateUser = async function (req, res, next) {
 
 exports.updateImage = async function (req, res, next) {
   try {
-    console.log(req.body)
+    console.log(req)
     await Sequelize.sequelize.transaction(async (t) => {
       const u = await user.update({
         foto: Buffer.from(req.file.buffer)

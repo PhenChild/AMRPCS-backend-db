@@ -17,6 +17,12 @@ router.post(
   [authJwt.verifyToken, authJwt.isObserver],
   user.updateUser)
 
+
+router.post(
+  '/updateUserPass',
+  [authJwt.verifyToken, authJwt.isObserver],
+  user.updateUserPass)
+
 router.post(
   '/update/picture',
   upload.single('foto'),

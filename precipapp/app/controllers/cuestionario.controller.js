@@ -9,8 +9,7 @@ const Sequelize = require('../models')
 
 exports.newCuestionario = async function (req, res, next) {
   try {
-    console.log(req.body)
-    let idC
+    console.log(req)
     await Sequelize.sequelize.transaction(async (t) => {
       await cuestionarios.create({
         fecha: Date.parse(req.body.fecha),
@@ -21,36 +20,38 @@ exports.newCuestionario = async function (req, res, next) {
         respTemps: req.body.rtemps,
         respGana: req.body.rgana,
         comentario: req.body.comentario,
-        idObservador: parseInt(req.obsId)
+        idObservador: 3
       }, { transaction: t }).then(cuest => {
         try {
           fotos.create({
             idCuestionario: parseInt(cuest.id),
-            foto: Buffer.from(req.body.img1, 'hex')
+            foto: Buffer.from(req.files[0].buffer)
           }).then(foto => {
             fotos.create({
               idCuestionario: parseInt(cuest.id),
-              foto: Buffer.from(req.body.img2, 'hex')
+              foto: Buffer.from(req.files[1].buffer)
             }).then(foto => {
               fotos.create({
                 idCuestionario: parseInt(cuest.id),
-                foto: Buffer.from(req.body.img3, 'hex')
+                foto: Buffer.from(req.files[2].buffer)
               }).then(foto => {
                 fotos.create({
                   idCuestionario: parseInt(cuest.id),
-                  foto: Buffer.from(req.body.img4, 'hex')
+                  foto: Buffer.from(req.files[3].buffer)
                 }).then(foto => {
-                  res.status(200).send({ message: 'Succesfully created' })
-                }).catch(err => res.status(419).send({ message: err.message }))
-              }).catch(err => res.status(419).send({ message: err.message }))
-            }).catch(err => res.status(419).send({ message: err.message }))
-          }).catch(err => res.status(419).send({ message: err.message }))
+                  res.status(200).send({ message: '4 imagenes creadas' })
+                }).catch(err => res.status(200).send({ message: "3 imagenes creadas" }))
+              }).catch(err => res.status(200).send({ message: "2 imagenes creadas" }))
+            }).catch(err => res.status(200).send({ message: "1 imagenes creadas" }))
+          }).catch(err => res.status(200).send({ message: 'algo' }))
         }
         catch (error) {
+          console.log(error.message)
           res.status(400).send({ message: error.message })
       }})
     })
   } catch (error) {
+    console.log(error.message)
     res.status(400).send({ message: error.message })
   }
 }
