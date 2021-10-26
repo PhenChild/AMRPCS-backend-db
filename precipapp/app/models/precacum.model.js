@@ -29,17 +29,17 @@ module.exports = (sequelize, DataTypes) => {
         },
         audCreatedAt: {
             field: 'aud_created_at',
-            type: DataTypes.DATEONLY,
+            type: DataTypes.DATE,
             defaultValue: sequelize.fn('now'),
             allowNull: false
         },
         audUpdatedAt: {
             field: 'aud_updated_at',
-            type: DataTypes.DATEONLY,
+            type: DataTypes.DATE,
         },
         audDeletedAt: {
             field: 'aud_deleted_at',
-            type: DataTypes.DATEONLY
+            type: DataTypes.DATE
         },
     }, {
         sequelize,

@@ -15,24 +15,27 @@ module.exports = (sequelize, DataTypes) => {
     };
     Pais.init({
         nombre: DataTypes.STRING,
-        siglas: DataTypes.STRING(2),
+        siglas: {
+            type: DataTypes.STRING(2),
+            unique: true
+        },
         state: {
             type: DataTypes.CHAR,
             defaultValue: 'A'
         },
         audCreatedAt: {
             field: 'aud_created_at',
-            type: DataTypes.DATEONLY,
+            type: DataTypes.DATE,
             defaultValue: sequelize.fn('now'),
             allowNull: false
         },
         audUpdatedAt: {
             field: 'aud_updated_at',
-            type: DataTypes.DATEONLY,
+            type: DataTypes.DATE,
         },
         audDeletedAt: {
             field: 'aud_deleted_at',
-            type: DataTypes.DATEONLY
+            type: DataTypes.DATE
         },
     }, {
         sequelize,
