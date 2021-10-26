@@ -1,7 +1,7 @@
 module.exports = {
   apps : [{
-    name : 'volunclime',
-    script: 'www',
+    name : 'precipapp',
+    script: './bin/www',
     watch: false,
     env: {
       NODE_ENV: 'development'
