@@ -29,3 +29,21 @@ exports.createFoto = async function (req, res, next) {
     res.status(400).send({ message: error.message })
     }
   }
+
+  exports.disableFoto = async function (req, res, next) {
+    try {
+      await Sequelize.sequelize.transaction(async (t) => {
+        const f = await fotos.update({
+          state: "I",
+          audDeletedAt: Date.now()
+        }, {
+          where: { id: parseInt(req.body.id, 10) }
+        }, { transaction: t })
+        return f
+      })
+      res.status(200).send({ message: 'Succesfully disable' })
+    } catch (error) {
+      res.status(400).send({ message: error.message })
+    }
+  }
+  

@@ -66,7 +66,8 @@ exports.disablePrecipitaciones = async function (req, res, next) {
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const p = await precipitaciones.update({
-        state: "I"
+        state: "I",
+        aud_deleted_at: Date.now()
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })

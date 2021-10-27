@@ -12,4 +12,7 @@ router.post('/new',
     upload.array('fotos', 4),
     foto.createFoto)
 
+router.post('/disable',
+    foto.disableFoto)
+
 module.exports = router

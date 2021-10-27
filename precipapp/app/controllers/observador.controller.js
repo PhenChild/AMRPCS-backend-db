@@ -136,6 +136,24 @@ exports.createObservador = async (req, res) => {
   }
 }
 
+exports.disableObserver = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      const obs = await observer.update({
+        state: "I",
+        aud_deleted_at: Date.now()
+      }, {
+        where: { id: parseInt(req.body.id, 10) }
+      }, { transaction: t })
+      return obs
+    })
+    res.status(200).send({ message: 'Succesfully disable' })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
 
 
 /*

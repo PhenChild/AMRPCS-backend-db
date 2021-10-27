@@ -57,7 +57,8 @@ exports.disableDivision = async function (req, res, next) {
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const d = await divisiones.update({
-        state: "i"
+        state: "I",
+        aud_deleted_at: Date.now()
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })
