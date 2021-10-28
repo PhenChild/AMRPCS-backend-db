@@ -100,7 +100,7 @@ exports.disableCuestionario = async function (req, res, next) {
     await Sequelize.sequelize.transaction(async (t) => {
       const c = await cuestionarios.update({
         state: "I",
-        aud_deleted_at: Date.now()
+        audDeletedAt: Date.now()
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })

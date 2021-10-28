@@ -55,7 +55,7 @@ exports.disablePais = async function (req, res, next) {
     await Sequelize.sequelize.transaction(async (t) => {
       const p = await paises.update({
         state: "I",
-        aud_deleted_at: Date.now()
+        audDeletedAt: Date.now()
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })
