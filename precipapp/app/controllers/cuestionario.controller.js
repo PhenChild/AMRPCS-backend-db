@@ -20,35 +20,48 @@ exports.newCuestionario = async function (req, res, next) {
         respTemps: req.body.rtemps,
         respGana: req.body.rgana,
         comentario: req.body.comentario,
-        idObservador: 3
-      }, { transaction: t }).then(cuest => {
-        try {
-          fotos.create({
-            idCuestionario: parseInt(cuest.id),
-            foto: Buffer.from(req.files[0].buffer)
-          }).then(foto => {
-            fotos.create({
+        idObservador: req.obsId
+        }, { transaction: t }).then(cuest => {
+        
+          if (req.files) {
+          try {          
+            Sequelize.sequelize.transaction(async (t) => {
+              for (const a of req.files) {
+                fotos.create({
+                idCuestionario: parseInt(cuest.id),
+                foto: Buffer.from(a.buffer)
+                })
+              }
+            }, {transaction: t }).then(cuest => {
+              res.status(200).send({ message: 'imagenes creadas' })
+            /*fotos.create({
               idCuestionario: parseInt(cuest.id),
-              foto: Buffer.from(req.files[1].buffer)
+              foto: Buffer.from(req.files[0].buffer)
             }).then(foto => {
               fotos.create({
                 idCuestionario: parseInt(cuest.id),
-                foto: Buffer.from(req.files[2].buffer)
+                foto: Buffer.from(req.files[1].buffer)
               }).then(foto => {
                 fotos.create({
                   idCuestionario: parseInt(cuest.id),
-                  foto: Buffer.from(req.files[3].buffer)
+                  foto: Buffer.from(req.files[2].buffer)
                 }).then(foto => {
-                  res.status(200).send({ message: '4 imagenes creadas' })
-                }).catch(err => res.status(200).send({ message: "3 imagenes creadas" }))
-              }).catch(err => res.status(200).send({ message: "2 imagenes creadas" }))
-            }).catch(err => res.status(200).send({ message: "1 imagenes creadas" }))
-          }).catch(err => res.status(200).send({ message: 'algo' }))
-        }
-        catch (error) {
-          console.log(error.message)
-          res.status(400).send({ message: error.message })
-      }})
+                  fotos.create({
+                    idCuestionario: parseInt(cuest.id),
+                    foto: Buffer.from(req.files[3].buffer)
+                  }).then(foto => {
+                    res.status(200).send({ message: '4 imagenes creadas' })
+                  }).catch(err => res.status(200).send({ message: "3 imagenes creadas" }))
+                }).catch(err => res.status(200).send({ message: "2 imagenes creadas" }))
+              }).catch(err => res.status(200).send({ message: "1 imagenes creadas" }))
+            }).catch(err => res.status(200).send({ message: 'algo' }))*/
+          })
+          }
+          catch (error) {
+            console.log(error.message)
+            res.status(400).send({ message: error.message })
+          }}
+        })
     })
   } catch (error) {
     console.log(error.message)
