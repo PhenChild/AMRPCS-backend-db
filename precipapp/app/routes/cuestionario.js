@@ -6,11 +6,11 @@ const cuestionario = require('../controllers/cuestionario.controller')
 const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() })
 
-/*----------------------------------------------------
+/*----------------------------------------------------S
           APP ENDPOINTS
 ----------------------------------------------------*/
 router.post('/new',
-  upload.array('img', 4),
+  [upload.array('img', 4), authJwt.verifyToken, obsEstacion.obsByEst],
   cuestionario.newCuestionario)
 
 /*----------------------------------------------------
