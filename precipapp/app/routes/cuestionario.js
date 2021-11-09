@@ -10,7 +10,7 @@ const upload = multer({ storage: multer.memoryStorage() })
           APP ENDPOINTS
 ----------------------------------------------------*/
 router.post('/new',
-  [upload.array('img', 4), authJwt.verifyToken, obsEstacion.obsByEst],
+  upload.array('img', 4),
   cuestionario.newCuestionario)
 
 /*----------------------------------------------------

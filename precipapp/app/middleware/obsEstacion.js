@@ -10,7 +10,6 @@ const Observer = db.Observador
 // eslint-disable-next-line no-undef
 obsByEst = (req, res, next) => {
     try {
-      console.log(req)
       Observer.findOne({
         where: {
           idUser: req.userId,
@@ -26,11 +25,8 @@ obsByEst = (req, res, next) => {
         res.status(403).send({
           message: 'Require Observer Role for this station!'
         })
-      }).catch(err => { 
-        console.log(err.message)
-        res.status(400).send({ message: err.message }) })
+      }).catch(err => { res.status(400).send({ message: err.message }) })
     } catch (error) {
-      console.log("edwin 2")
       res.status(400).send({ message: error.message })
     }
   }
