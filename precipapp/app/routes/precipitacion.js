@@ -18,6 +18,10 @@ router.post('/new',
 router.get('/getAll',
 precipitacion.getPrecipitaciones)
 
+router.get('/getAll/filtro',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  precipitacion.getFiltro)
+
 router.post('/disable',
 [authJwt.verifyToken, authJwt.isAdmin],
 precipitacion.disablePrecipitaciones)

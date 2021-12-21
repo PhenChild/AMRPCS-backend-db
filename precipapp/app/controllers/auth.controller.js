@@ -7,6 +7,7 @@ const Estacion = db.Estacion
 
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const { restart } = require('nodemon')
 
 /*---------------------------------------------------
                     APP ENDPOINTS
@@ -39,21 +40,41 @@ exports.signin = (req, res) => {
     })
     const userRole = user.role.toUpperCase()
     console.log(user.Pais)
-    var json = {
-      id: user.id,
-      email: user.email,
-      nombre: user.nombre,
-      apellido: user.apellido,
-      telefono: user.telefono,
-      role: user.role,
-      pais: user.Pais.nombre,
-      token: token
+    var json
+    if (user.foto) {
+      json = {
+        id: user.id,
+        email: user.email,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        telefono: user.telefono,
+        role: user.role,
+        pais: user.Pais.nombre,
+        foto: user.foto.toString('base64'),
+        token: token
+      }  
     }
+    else {
+      json = {
+        id: user.id,
+        email: user.email,
+        nombre: user.nombre,
+        apellido: user.apellido,
+        telefono: user.telefono,
+        role: user.role,
+        pais: user.Pais.nombre,
+        token: token
+      }
+    }
+    
     if (userRole == 'OBSERVER') {
       getHasPluvObs(user.id).then(pl => {
         json["tiene_pluv"] = pl
         res.status(200).send(json)
       })
+    }
+    else if (userRole == 'ADMIN') {
+      res.status(200).send(json)
     }
   })
     .catch(err => {
@@ -76,11 +97,14 @@ async function getHasPluvObs(idUser) {
   }
 }
 
-
 /*----------------------------------------------------
 ----------------------------------------------------*/
+
 exports.signup = (req, res) => {
   // Save User to Database
+  var a
+  if (!req.file) a = null
+  else a = Buffer.from(req.file.buffer)
   User.create({
     email: req.body.email,
     password: bcrypt.hashSync(req.body.password, 8),
@@ -88,14 +112,20 @@ exports.signup = (req, res) => {
     apellido: req.body.apellido,
     telefono: req.body.telefono,
     idPais: parseInt(req.body.idPais),
-    state: req.body.state,
+    state: 'A',
+    foto: a,
     role: req.body.role
   })
     .then(user => {
-      if (req.body.role) {
-        user.update({ role: req.body.role }).then(() => {
-          res.send({ message: 'User was registered successfully!' })
-        })
+      if (user.role == 'observer') {
+        for (var est of req.body.estaciones) {
+          var obs = Observador.create({
+            state: 'A',
+            idEstacion: parseInt(est.id),
+            idUser: user.id
+          })
+          res.status(200).send({message: "User created"})
+        }
       } else {
         // user role by default
         res.send({ message: 'User was registered without role successfully!' })
@@ -105,6 +135,3 @@ exports.signup = (req, res) => {
       res.status(500).send({ message: err.message })
     })
 }
-
-
-

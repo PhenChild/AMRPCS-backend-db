@@ -80,13 +80,14 @@ exports.getObservadores = async function (req, res, next) {
   try {
     await observer.findAll({
       where: { state: 'A' },
+      required: true,
       include: [{
-        model: user, required: false
+        model: user, required: true
       }, {
-        model: estacion, required: false
+        model: estacion, required: true, where: {id: parseInt(req.body.id)}
       }]
     })
-      .then(observadores => {
+      .then(observadores => { 
         res.json(observadores)
       })
       .catch(err => res.json(err))

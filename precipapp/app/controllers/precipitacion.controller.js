@@ -1,5 +1,9 @@
 const precipitaciones = require('../models').Precipitacion
+const observadores = require('../models').Observador
+const usuarios = require('../models').User
+const estaciones = require('../models').Estacion
 const Sequelize = require('../models')
+const Op = require('sequelize').Op
 
 
 /*---------------------------------------------------
@@ -24,13 +28,20 @@ exports.newPrecipitacion = async function (req, res, next) {
 
 /*----------------------------------------------------
 ----------------------------------------------------*/
-exports.getPrecipitaciones = async function (req, res, next) {
+getPrecipitaciones = async function (req, res, next) {
   try {
     await precipitaciones.findAll({
       where: { state: "A" },
-      attributes: { exclude: ['state'] }
+      attributes: { exclude: ['state'] },
+      include: [{
+        model: observadores, required: false, where: { state: 'A' }, include: [{
+          model: usuarios, required: false, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']}, {
+            model: estaciones, required: false, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+        }]
+      }]
     })
       .then(precipitaciones => {
+        console.log(precipitaciones)
         res.json(precipitaciones)
       })
       .catch(err => res.json(err.message))
@@ -39,6 +50,7 @@ exports.getPrecipitaciones = async function (req, res, next) {
   }
 }
 
+module.exports.getPrecipitaciones = getPrecipitaciones
 
 /*
 exports.updatePais = async function (req, res, next) {
@@ -60,6 +72,181 @@ exports.updatePais = async function (req, res, next) {
   }
 }
 */
+
+exports.getFiltro = async function (req, res, next) {
+  var datos = req.query
+  console.log(req.query)
+  if (datos.observador) getPrecipitacionesObservador(datos.observador, res, next)
+  else if (datos.estacion) getPrecipitacionesEstacion(datos.estacion, res, next)
+  else if (datos.fechaInicio && datos.fechaFin) getPrecipitacionesFecha(datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.observador && datos.estacion) getPrecipitacionesObservadorEstacion(datos.observador, datos.estacion, res, next)
+  else if (datos.estacion && datos.fechaInicio && datos.fechaFin) getPrecipitacionesObservadorFecha(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.observador && datos.fechaInicio && datos.fechaFin) getPrecipitacionesObservadorFecha(datos.observador, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.observador && datos.estacion && datos.fechaInicio && datos.fechaFin) getPrecipitacionesNombreEstacionFecha(datos.observador, datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
+  else getPrecipitaciones(req, res, next)
+
+}
+
+getPrecipitacionesObservador = async function (nombre, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { state: "A" },
+      required: true,
+      attributes: { exclude: ['state'] },
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesEstacion = async function (nombreEstacion, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { state: "A" },
+      required: true,
+      attributes: { exclude: ['state'] },
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesFecha = async function (fechaInicio, fechaFin, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesObservadorEstacion = async function (nombre, nombreEstacion, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { state: "A" },
+      required: true,
+      attributes: { exclude: ['state'] },
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesEstacionFecha = async function (nombreEstacion, fechaInicio, fechaFin, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      required: true,
+      attributes: { exclude: ['state'] },
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesObservadorFecha = async function (nombre, fechaInicio, fechaFin, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      required: true,
+      attributes: { exclude: ['state'] },
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { nombre: parseInt(nombre), state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesNombreEstacionFecha = async function (nombre, nombreEstacion, fechaInicio, fechaFin, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      required: true,
+      attributes: { exclude: ['state'] },
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }, state: 'A' 
+        }, {
+          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
 
 exports.disablePrecipitaciones = async function (req, res, next) {
   try {

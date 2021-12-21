@@ -24,7 +24,8 @@ router.patch(
 /*----------------------------------------------------
 ----------------------------------------------------*/
 
-router.get('/getAll',
+router.post('/getObsEstacion',
+  [authJwt.verifyToken, authJwt.isAdmin],
   observador.getObservadores)
 
 router.get(

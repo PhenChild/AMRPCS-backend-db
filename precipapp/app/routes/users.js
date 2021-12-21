@@ -17,6 +17,10 @@ router.post(
   [authJwt.verifyToken, authJwt.isObserver],
   user.updateUser)
 
+router.post(
+  '/users/updateUser',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.updateUsers)
 
 router.post(
   '/updateUserPass',
@@ -28,11 +32,25 @@ router.post(
   upload.single('foto'),
   user.updateImage)
 
+router.post(
+  '/users/delete',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.deleteUser)
+  
 router.get(
   '/getUserPicture',
   [authJwt.verifyToken, authJwt.isObserver],
-  user.getImage)
-  
+  user.getImage)  
+
+router.get('/getAll/filtro',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.getFiltro)
+
+router.post(
+  '/users/updateUser',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.updateUsers)
+ 
 /*
 router.get(
   '/delete/:userid',

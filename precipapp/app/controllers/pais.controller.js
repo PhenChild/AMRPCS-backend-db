@@ -1,7 +1,9 @@
 const paises = require('../models').Pais
+const divisiones = require('../models').Division
 const Sequelize = require('../models')
+const Op = require('sequelize').Op
 
-exports.getPaises = async function (req, res, next) {
+getPaises = async function (req, res, next) {
   try {
     await paises.findAll({
       where: { state: "A" },
@@ -16,18 +18,72 @@ exports.getPaises = async function (req, res, next) {
   }
 }
 
-exports.newPais = async function (req, res, next) {
-  try{
-  console.log(req.body)
-  await paises.create({
-    nombre: req.body.nombre,
-    siglas: req.body.siglas
-  }).then(pais => {
-    res.status(200).send({ message: 'Succesfully created' })
-  }).catch(err => res.status(419).send({ message: err.message }))
-} catch (error) {
-  res.status(400).send({ message: error.message })
+module.exports.getPaises = getPaises
+
+exports.getFiltro = async function (req, res, next) {
+  var datos = req.query
+  console.log(req.query)
+  if (datos.nombre) getPaisesNombre(datos.nombre, res, next)
+  else if (datos.siglas) getPaisesSiglas(datos.siglas, res, next)
+  else if (datos.nombre && datos.siglas) getPaisesNombreSiglas(datos.nombre, datos.siglas, res, next)
+  else getPaises(req, res, next)
+
 }
+
+getPaisesNombre = async function (nombre, res, next) {
+  try{
+  await paises.findAll({
+    where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+  })
+    .then(paises => {
+      res.json(paises)
+    })
+    .catch(err => res.json(err))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPaisesSiglas = async function (siglas, res, next) {
+  try{
+  await paises.findAll({
+    where: { siglas: {[Op.iLike]: '%' + siglas + '%'}, state: 'A' }
+  })
+    .then(paises => {
+      res.json(paises)
+    })
+    .catch(err => res.json(err))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPaisesNombreSiglas = async function (nombre, siglas, res, next) {
+  try{
+  await paises.findAll({
+    where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, siglas: {[Op.iLike]: '%' + siglas + '%'}, state: 'A' }
+  })
+    .then(paises => {
+      res.json(paises)
+    })
+    .catch(err => res.json(err))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+exports.newPais = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await paises.create({
+      nombre: req.body.nombre,
+      siglas: req.body.siglas
+    }).then(pais => {
+      res.status(200).send({ message: 'Succesfully created' })
+    }).catch(err => res.status(419).send({ message: err.message }))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
 }
 
 exports.updatePais = async function (req, res, next) {
@@ -59,7 +115,11 @@ exports.disablePais = async function (req, res, next) {
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })
-      return p
+      console.log(p)
+      var d = divisiones.update({
+        state: 'I',
+        audDeletedAt: Date.now()
+      }, {where: {idPais: p.id}})
     })
     res.status(200).send({ message: 'Succesfully disable' })
   } catch (error) {

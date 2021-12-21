@@ -6,6 +6,10 @@ const pais = require('../controllers/pais.controller')
 router.get('/getAll',
 pais.getPaises)
 
+router.get('/getAll/filtro',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  pais.getFiltro)
+
 router.post('/new',
   [authJwt.verifyToken, authJwt.isAdmin],
   pais.newPais)
@@ -14,7 +18,7 @@ router.post('/update',
   [authJwt.verifyToken, authJwt.isAdmin],
   pais.updatePais)
 
-router.post('/disable',
+router.post('/delete',
 [authJwt.verifyToken, authJwt.isAdmin],
 pais.disablePais)
 
