@@ -8,6 +8,11 @@ const multer = require('multer');
 const upload = multer({ storage: multer.memoryStorage() })
 
 router.get(
+  '/getMe',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.getMe)
+
+router.get(
   '/getAll',
   [authJwt.verifyToken, authJwt.isAdmin],
   user.getAll)
@@ -17,10 +22,38 @@ router.post(
   [authJwt.verifyToken, authJwt.isObserver],
   user.updateUser)
 
+// Actualizacion de datos de usuario desde administracion
+
+router.post(
+  '/user/update',
+  [authJwt.verifyToken],
+  user.updateSelfUser)
+
+router.post(
+  '/user/pass',
+  [authJwt.verifyToken],
+  user.updateSelfUserPass)
+
 router.post(
   '/users/updateUser',
   [authJwt.verifyToken, authJwt.isAdmin],
   user.updateUsers)
+
+router.post(
+  '/users/updatePass',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.adminUpdatePassUser)
+
+router.post(
+  '/users/getPicture',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.adminGetImage)
+
+router.post(
+  '/users/updatePicture',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  upload.single('file'),
+  user.updateUserImage)
 
 router.post(
   '/updateUserPass',
@@ -28,19 +61,14 @@ router.post(
   user.updateUserPass)
 
 router.post(
-  '/update/picture',
-  upload.single('foto'),
-  user.updateImage)
-
-router.post(
   '/users/delete',
   [authJwt.verifyToken, authJwt.isAdmin],
   user.deleteUser)
-  
+
 router.get(
   '/getUserPicture',
   [authJwt.verifyToken, authJwt.isObserver],
-  user.getImage)  
+  user.getImage)
 
 router.get('/getAll/filtro',
   [authJwt.verifyToken, authJwt.isAdmin],
@@ -50,7 +78,7 @@ router.post(
   '/users/updateUser',
   [authJwt.verifyToken, authJwt.isAdmin],
   user.updateUsers)
- 
+
 /*
 router.get(
   '/delete/:userid',

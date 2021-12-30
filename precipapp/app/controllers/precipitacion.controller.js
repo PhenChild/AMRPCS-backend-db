@@ -87,6 +87,16 @@ exports.getFiltro = async function (req, res, next) {
 
 }
 
+exports.getFiltroGrafico = async function (req, res, next) {
+  var datos = req.query
+  console.log(req.query)
+  if (datos.estacion) getPrecipitacionesEstacionGrafico(datos.estacion, res, next)
+  else if (datos.fechaInicio && datos.fechaFin) getPrecipitacionesFechaGrafico(datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.estacion && datos.fechaInicio && datos.fechaFin) getPrecipitacionesEstacionFechaGrafico(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
+  else getPrecipitacionesGrafico(req, res, next)
+
+}
+
 getPrecipitacionesObservador = async function (nombre, res, next) {
   try {
     await precipitaciones.findAll({
@@ -236,6 +246,98 @@ getPrecipitacionesNombreEstacionFecha = async function (nombre, nombreEstacion, 
           model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }, state: 'A' 
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+//Funciones para grafico
+
+getPrecipitacionesGrafico = async function (req, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { state: "A" },
+      required: true,
+      order: [
+          ['fecha', 'ASC']
+      ],
+      attributes: ['fecha', 'valor']
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesEstacionGrafico = async function (nombreEstacion, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { state: "A" },
+      required: true,
+      order: [
+          ['fecha', 'ASC']
+      ],
+      attributes: ['fecha', 'valor'],
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, attributes: [], include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: []
+        }, {
+          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: [] 
+      }]
+      }]
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesFechaGrafico = async function (fechaInicio, fechaFin, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      order: [
+          ['fecha', 'ASC']
+      ],
+      attributes: ['fecha', 'valor'],
+      required: true
+    })
+      .then(precipitaciones => {
+        res.json(precipitaciones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getPrecipitacionesEstacionFechaGrafico = async function (nombreEstacion, fechaInicio, fechaFin, res, next) {
+  try {
+    await precipitaciones.findAll({
+      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      order: [
+          ['fecha', 'ASC']
+      ],
+      required: true,
+      attributes: ['fecha', 'valor'],
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, attributes: [], include: [{
+          model: usuarios, required: true, where: { state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: [] 
       }]
       }]
     })

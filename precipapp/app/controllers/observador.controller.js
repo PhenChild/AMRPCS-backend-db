@@ -82,9 +82,28 @@ exports.getObservadores = async function (req, res, next) {
       where: { state: 'A' },
       required: true,
       include: [{
-        model: user, required: true
+        model: user, attributes: { exclude: ['foto', 'password'] }, required: true
       }, {
-        model: estacion, required: true, where: {id: parseInt(req.body.id)}
+        model: estacion, required: true, attributes: { exclude: ['foto'] }, where: {id: parseInt(req.body.id)}
+      }]
+    })
+      .then(observadores => { 
+        res.json(observadores)
+      })
+      .catch(err => res.json(err))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+exports.getUserEstaciones = async function (req, res, next) {
+  try {
+    await observer.findAll({
+      where: { idUser: req.body.id, state: 'A' },
+      required: true,
+      attributes: [],
+      include: [{
+        model: estacion, required: true, attributes: { exclude: ['foto'] }
       }]
     })
       .then(observadores => { 
@@ -97,15 +116,16 @@ exports.getObservadores = async function (req, res, next) {
 }
 
 exports.getObservador = async function (req, res, next) {
+  console.log(req.body)
   try {
     await observer.findOne({
       where: {
-        UserId: req.UserId,
+        idEstacion: req.body.estacion.id, attributes: {exclude: ['foto']},
         state: 'A'
       },
       attributes: ['id'],
       include: [{
-        model: user, required: false, attributes: ['email', 'nombre', 'apellido', 'telefono']
+        model: user, required: false, attributes: {exclude: ['password', 'foto']}
       }]
     })
       .then(obs => {
@@ -120,14 +140,11 @@ exports.getObservador = async function (req, res, next) {
   }
 }
 
-
-
 exports.createObservador = async (req, res) => {
   try {
     await observer.create({
       EstacionId: req.body.idEstacion,
-      UserId: req.body.idUser,
-      is_sequia: (req.body.sequia == 'true')
+      UserId: req.body.idUser
     }).then(obs => {
       res.send({ message: 'Observer succesfully created!' })
     })

@@ -28,6 +28,10 @@ router.post('/getObsEstacion',
   [authJwt.verifyToken, authJwt.isAdmin],
   observador.getObservadores)
 
+  router.post('/getUserEstacion',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  observador.getUserEstaciones)
+
 router.get(
   '/get',
   [authJwt.verifyToken],

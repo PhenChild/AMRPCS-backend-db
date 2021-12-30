@@ -1,11 +1,11 @@
 module.exports = {
   "development": {
-    "username": "bits",
-    "password": '123.456',
+    "username": "postgres",
+    "password": 'admin',
     "database": "precdb",
     "host": "localhost",
     "dialect": "postgres",
-    "port":"5434"
+    "port":"5433"
   },
   "test": {
     "username": "root",

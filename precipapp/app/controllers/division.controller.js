@@ -337,6 +337,46 @@ exports.getDivisionesDivisiones = async function (req, res, next) {
   }
 }
 
+
+exports.getDivisionesInferiores = async function (req, res, next) {
+  console.log(req.body)
+  var nuevoNivel = parseInt(req.body.nivel) + 1
+  if (nuevoNivel == 4) {
+    res.json({})
+  }
+  else {
+    try {
+      await divisiones.findAll({
+        where: { state: "A", idPadre: parseInt(req.body.id), nivel: nuevoNivel },
+        attributes: { exclude: ['state'] }
+      })
+        .then(divisiones => {
+          console.log(divisiones)
+          res.json(divisiones)
+        })
+        .catch(err => res.json(err.message))
+    } catch (error) {
+      res.status(400).send({ message: error.message })
+    }
+  }
+}
+
+exports.getDivisionesPaisNivelOne = async function (req, res, next) {
+  console.log(req.body)
+  try {
+    await divisiones.findAll({
+      where: { state: "A", idPais: parseInt(req.body.idPais), nivel: 1 },
+      attributes: { exclude: ['state'] }
+    })
+      .then(divisiones => {
+        res.json(divisiones)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
 exports.getDivisionesPais = async function (req, res, next) {
   try {
     await divisiones.findAll({
