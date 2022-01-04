@@ -76,13 +76,13 @@ exports.updatePais = async function (req, res, next) {
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.observador) getPrecipitacionesObservador(datos.observador, res, next)
-  else if (datos.estacion) getPrecipitacionesEstacion(datos.estacion, res, next)
-  else if (datos.fechaInicio && datos.fechaFin) getPrecipitacionesFecha(datos.fechaInicio, datos.fechaFin, res, next)
+  if (datos.observador && datos.estacion && (datos.fechaInicio || datos.fechaFin)) getPrecipitacionesNombreEstacionFecha(datos.observador, datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.observador && (datos.fechaInicio || datos.fechaFin)) getPrecipitacionesObservadorFecha(datos.observador, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.estacion && (datos.fechaInicio || datos.fechaFin)) getPrecipitacionesEstacionFecha(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
   else if (datos.observador && datos.estacion) getPrecipitacionesObservadorEstacion(datos.observador, datos.estacion, res, next)
-  else if (datos.estacion && datos.fechaInicio && datos.fechaFin) getPrecipitacionesObservadorFecha(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.observador && datos.fechaInicio && datos.fechaFin) getPrecipitacionesObservadorFecha(datos.observador, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.observador && datos.estacion && datos.fechaInicio && datos.fechaFin) getPrecipitacionesNombreEstacionFecha(datos.observador, datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.fechaInicio || datos.fechaFin) getPrecipitacionesFecha(datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.observador) getPrecipitacionesObservador(datos.observador, res, next)
+  else if (datos.estacion) getPrecipitacionesEstacion(datos.estacion, res, next)
   else getPrecipitaciones(req, res, next)
 
 }
@@ -105,7 +105,7 @@ getPrecipitacionesObservador = async function (nombre, res, next) {
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}] , state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -128,7 +128,7 @@ getPrecipitacionesEstacion = async function (nombreEstacion, res, next) {
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -145,13 +145,17 @@ getPrecipitacionesEstacion = async function (nombreEstacion, res, next) {
 
 getPrecipitacionesFecha = async function (fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await precipitaciones.findAll({
-      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      where: { fecha:  {[Op.between]: [Date.parse(fI), new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -174,7 +178,7 @@ getPrecipitacionesObservadorEstacion = async function (nombre, nombreEstacion, r
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -191,13 +195,18 @@ getPrecipitacionesObservadorEstacion = async function (nombre, nombreEstacion, r
 
 getPrecipitacionesEstacionFecha = async function (nombreEstacion, fechaInicio, fechaFin, res, next) {
   try {
+    console.log("edwin")
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await precipitaciones.findAll({
-      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      where: { fecha:  {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       required: true,
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -214,13 +223,17 @@ getPrecipitacionesEstacionFecha = async function (nombreEstacion, fechaInicio, f
 
 getPrecipitacionesObservadorFecha = async function (nombre, fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await precipitaciones.findAll({
-      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      where: { fecha:  {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       required: true,
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { nombre: parseInt(nombre), state: 'A' }
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}]}, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -237,13 +250,17 @@ getPrecipitacionesObservadorFecha = async function (nombre, fechaInicio, fechaFi
 
 getPrecipitacionesNombreEstacionFecha = async function (nombre, nombreEstacion, fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await precipitaciones.findAll({
-      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      where: { fecha:  {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       required: true,
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }, state: 'A' 
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -279,6 +296,24 @@ getPrecipitacionesGrafico = async function (req, res, next) {
   }
 }
 
+exports.updateValor = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      const prec = await precipitaciones.update({
+        valor: parseFloat(req.body.valor)
+      }, {
+        where: { id: parseInt(req.body.id) }
+      }, { transaction: t })
+      res.status(200).send({ message: 'Succesfully updated' })
+    }).catch(err => {
+      res.status(400).send({ message: err.message })
+    })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
 getPrecipitacionesEstacionGrafico = async function (nombreEstacion, res, next) {
   try {
     await precipitaciones.findAll({
@@ -307,8 +342,12 @@ getPrecipitacionesEstacionGrafico = async function (nombreEstacion, res, next) {
 
 getPrecipitacionesFechaGrafico = async function (fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await precipitaciones.findAll({
-      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      where: { fecha:  {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       order: [
           ['fecha', 'ASC']
       ],
@@ -326,8 +365,12 @@ getPrecipitacionesFechaGrafico = async function (fechaInicio, fechaFin, res, nex
 
 getPrecipitacionesEstacionFechaGrafico = async function (nombreEstacion, fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await precipitaciones.findAll({
-      where: { fecha:  {[Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      where: { fecha:  {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       order: [
           ['fecha', 'ASC']
       ],

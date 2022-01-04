@@ -19,15 +19,17 @@ router.get('/getAll',
   precipitacion.getPrecipitaciones)
 
 router.get('/getAll/filtro',
-  [authJwt.verifyToken, authJwt.isAdmin],
   precipitacion.getFiltro)
 
 router.get('/getAll/filtroGrafico',
-  [authJwt.verifyToken, authJwt.isAdmin],
   precipitacion.getFiltroGrafico)
 
 router.post('/disable',
   [authJwt.verifyToken, authJwt.isAdmin],
   precipitacion.disablePrecipitaciones)
+
+router.post('/update',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  precipitacion.updateValor)
 
 module.exports = router

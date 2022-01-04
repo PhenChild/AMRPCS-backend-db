@@ -25,11 +25,11 @@ router.patch(
 ----------------------------------------------------*/
 
 router.post('/getObsEstacion',
-  [authJwt.verifyToken, authJwt.isAdmin],
+  [authJwt.verifyToken],
   observador.getObservadores)
 
   router.post('/getUserEstacion',
-  [authJwt.verifyToken, authJwt.isAdmin],
+  [authJwt.verifyToken],
   observador.getUserEstaciones)
 
 router.get(

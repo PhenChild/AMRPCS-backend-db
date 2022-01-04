@@ -9,7 +9,7 @@ const upload = multer({ storage: multer.memoryStorage() })
 
 router.get(
   '/getMe',
-  [authJwt.verifyToken, authJwt.isAdmin],
+  [authJwt.verifyToken],
   user.getMe)
 
 router.get(
@@ -71,7 +71,6 @@ router.get(
   user.getImage)
 
 router.get('/getAll/filtro',
-  [authJwt.verifyToken, authJwt.isAdmin],
   user.getFiltro)
 
 router.post(

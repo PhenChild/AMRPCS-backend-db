@@ -2,12 +2,11 @@ const Sequelize = require('../models')
 const pais = require('../models').Pais
 const division = require('../models').Division
 const Op = require('sequelize').Op
-
 const estacion = require('../models').Estacion
 
 getEstaciones = async function (req, res, next) {
   try {
-    await estacion.findAll({
+    var estaciones = await estacion.findAll({
       where: { state: 'A' },
       attributes: { exclude: ['state', 'foto'] },
       include: [{
@@ -16,11 +15,49 @@ getEstaciones = async function (req, res, next) {
         }]
       }]
     })
-      .then(estaciones => {
-        res.json(estaciones)
+    console.log("edwin")
+    var json = []
+
+    for (var e of estaciones) {
+      console.log(e.idUbicacion)
+      var d3 = await division.findOne({
+        where: { id: e.idUbicacion, state: 'A' },
+        required: true
       })
-      .catch(err => res.json(err))
+      console.log(d3.idPadre)
+  
+      var d2 = await division.findOne({
+        where: {id: d3.idPadre, state: 'A' },
+        required: true
+      })
+  
+      var d1 = await division.findOne({
+        where: {id: d2.idPadre, state: 'A' },
+        required: true
+      })
+  
+      jsonEstacion = {
+        nombre: e.nombre,
+        Division: e.Division,
+        altitud: e.altitud,
+        codigo: e.codigo,
+        direccion: e.direccion,
+        hasPluviometro: e.hasPluviometro,
+        id: e.id,
+        idUbicacion: e.idUbicacion,
+        posicion: e.posicion,
+        referencias: e.referencias,
+        division1: d1,
+        division2: d2,
+        division3: d3,
+      }
+      json.push(jsonEstacion)
+    }
+
+    res.json(json)
+
   } catch (error) {
+    console.log(error)
     res.status(400).send({ message: error.message })
   }
 }
@@ -290,7 +327,8 @@ exports.adminGetImage = async function (req, res, next) {
       attributes: ['foto']
     })
       .then(estacion => {
-        res.json({ foto: estacion.foto.toString('base64') })
+        if (estacion.foto) res.json({ foto: estacion.foto.toString('base64') })
+        else res.json({ foto: '' } )
       })
       .catch(err => res.status(419).send({ message: err.message }))
   } catch (error) {
@@ -382,36 +420,26 @@ exports.disableEstacion = async function (req, res, next) {
   }
 }
 
-exports.getUpdateEstacion = async function (req, res, next) {
+exports.getHermanoDivisiones = async function (req, res, next) {
   try {
     var json = []
 
-    var d3 = await division.find({
-      where: { id: req.body.division, state: 'A' },
+    var d3 = await division.findOne({
+      where: { id: req.body.idUbicacion, state: 'A' },
       required: true
     })
 
-    var d2 = await division.find({
+    var padre = await division.findOne({
       where: {id: d3.idPadre, state: 'A' },
       required: true
     })
 
-    var d1 = await division.find({
-      where: {id: d2.idPadre, state: 'A' },
+    var ret = await division.findAll({
+      where: {idPadre: padre.id, state: 'A' },
       required: true
     })
 
-    var pais = await pais.find({
-      where: {id: d1.idPais}
-    })
-
-    json.push(pais)
-    json.push(d1)
-    json.push(d2)
-    json.push(d3)
-
-    res.json(json)
-
+    res.json(ret)
   } catch (error) {
     res.status(400).send({ message: error.message })
   }

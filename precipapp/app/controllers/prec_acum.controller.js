@@ -38,7 +38,7 @@ getAcumulados = async function (req, res, next) {
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -78,13 +78,13 @@ exports.updatePais = async function (req, res, next) {
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.observador) getAcumuladosObservador(datos.observador, res, next)
-  else if (datos.estacion) getAcumuladosEstacion(datos.estacion, res, next)
-  else if (datos.fechaInicio && datos.fechaFin) getAcumuladosFecha(datos.fechaInicio, datos.fechaFin, res, next)
+  if (datos.observador && datos.estacion && (datos.fechaInicio || datos.fechaFin)) getAcumuladosObservadorEstacionFecha(datos.observador, datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.observador && (datos.fechaInicio || datos.fechaFin)) getAcumuladosObservadorFecha(datos.observador, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.estacion && (datos.fechaInicio || datos.fechaFin)) getAcumuladosEstacionFecha(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
   else if (datos.observador && datos.estacion) getAcumuladosObservadorEstacion(datos.observador, datos.estacion, res, next)
-  else if (datos.estacion && datos.fechaInicio && datos.fechaFin) getAcumuladosEstacionFecha(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.observador && datos.fechaInicio && datos.fechaFin) getAcumuladosObservadorFecha(datos.observador, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.observador && datos.estacion && datos.fechaInicio && datos.fechaFin) getAcumuladosObservadorEstacionFecha(datos.observador, datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.fechaInicio || datos.fechaFin) getAcumuladosFecha(datos.fechaInicio, datos.fechaFin, res, next)
+  else if (datos.observador) getAcumuladosObservador(datos.observador, res, next)
+  else if (datos.estacion) getAcumuladosEstacion(datos.estacion, res, next)
   else getAcumulados(req, res, next)
 
 }
@@ -97,7 +97,7 @@ getAcumuladosObservador = async function (nombre, res, next) {
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -120,7 +120,7 @@ getAcumuladosEstacion = async function (nombreEstacion, res, next) {
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -137,12 +137,16 @@ getAcumuladosEstacion = async function (nombreEstacion, res, next) {
 
 getAcumuladosFecha = async function (fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fechaInicio, fechaFin]}, fecha_fin: {[Op.between]: [fechaInicio, fechaFin]}, state: "A" },
+      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
       attributes: { exclude: ['state'] },
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -165,7 +169,7 @@ getAcumuladosObservadorEstacion = async function (nombre, nombreEstacion, res, n
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -182,13 +186,17 @@ getAcumuladosObservadorEstacion = async function (nombre, nombreEstacion, res, n
 
 getAcumuladosEstacionFecha = async function (nombreEstacion, fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fechaInicio, fechaFin]}, fecha_fin: {[Op.between]: [fechaInicio, fechaFin]}, state: "A" },
+      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -205,13 +213,19 @@ getAcumuladosEstacionFecha = async function (nombreEstacion, fechaInicio, fechaF
 
 getAcumuladosObservadorFecha = async function (nombre, fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fechaInicio, fechaFin]}, fecha_fin: {[Op.between]: [fechaInicio, fechaFin]}, state: "A" },
+      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
       attributes: { exclude: ['state'] },
       include: [{
-        model: observadores, required: false, where: { state: 'A' }, include: [{
-          model: usuarios, required: false, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
-        }]
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: {state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+      }]
       }]
     })
       .then(acumulados => {
@@ -225,13 +239,17 @@ getAcumuladosObservadorFecha = async function (nombre, fechaInicio, fechaFin, re
 
 getAcumuladosObservadorEstacionFecha = async function (nombre, nombreEstacion, fechaInicio, fechaFin, res, next) {
   try {
+    var fI = fechaInicio
+    var fF = fechaFin
+    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+    else if (!fechaFin) fF = Date.now()
     await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fechaInicio, fechaFin]}, fecha_fin: {[Op.between]: [fechaInicio, fechaFin]}, state: "A" },
+      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { nombre: {[Op.iLike]: '%' + nombre + '%'}, state: 'A' }
+          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
       }]
@@ -241,6 +259,24 @@ getAcumuladosObservadorEstacionFecha = async function (nombre, nombreEstacion, f
         res.json(acumulados)
       })
       .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+exports.updateValor = async function (req, res, next) {
+  try {
+    console.log(req.body)
+    await Sequelize.sequelize.transaction(async (t) => {
+      const prec = await acumulados.update({
+        valor: parseFloat(req.body.valor)
+      }, {
+        where: { id: parseInt(req.body.id) }
+      }, { transaction: t })
+      res.status(200).send({ message: 'Succesfully updated' })
+    }).catch(err => {
+      res.status(400).send({ message: err.message })
+    })
   } catch (error) {
     res.status(400).send({ message: error.message })
   }
