@@ -45,6 +45,16 @@ router.post(
   user.adminUpdatePassUser)
 
 router.post(
+  '/user/getPicture',
+  user.getImage)
+
+router.post(
+  '/user/updatePicture',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  upload.single('file'),
+  user.updateImage)
+
+router.post(
   '/users/getPicture',
   [authJwt.verifyToken, authJwt.isAdmin],
   user.adminGetImage)
@@ -71,6 +81,7 @@ router.get(
   user.getImage)
 
 router.get('/getAll/filtro',
+  [authJwt.verifyUser],
   user.getFiltro)
 
 router.post(

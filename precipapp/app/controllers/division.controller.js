@@ -1,39 +1,48 @@
 const divisiones = require('../models').Division
 const pais = require('../models').Pais
+const estacion = require('../models').Estacion
+const observer = require('../models').Observador
 const Sequelize = require('../models')
 const Op = require('sequelize').Op
 
-getDivisiones = async function (req, res, next) {
+getUserRole = async function (req) {
+  var role = 'observer'
+  if (req.userId >= 0) {
+    var u = await user.findOne({
+      where: { id: req.userId, state: "A" },
+      attributes: ['role']
+    })
+    if (u.role == 'admin') role = 'admin'
+  }
+  return role
+}
+
+getDivisiones = async function (options, role, req, res, next) {
   try {
     var resDivisiones
-    await divisiones.findAll({
-      where: { state: "A" },
-      attributes: { exclude: ['state'] },
-      include: [{
-        model: pais, required: false, where: { state: 'A' }
-      }]
-    })
+    await divisiones.findAll(options)
       .then(divisiones => {
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    console.log(resDivisiones)
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
       let nombrePadre
       if (!p.dataValues.idPadre) nombrePadre = '-'
       else {
-        var padre = await divisiones.findOne({
+        var padre
+        if (role == 'observer') padre = await divisiones.findOne({
           where: { state: "A", id: p.dataValues.idPadre }
+        })
+        else padre = await divisiones.findOne({
+          where: { id: p.dataValues.idPadre }
         })
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      console.log(padre)
       arrayJson.push(datosDivision)
     }
-    console.log(arrayJson)
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -45,14 +54,131 @@ module.exports.getDivisiones = getDivisiones
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.nombre) getDivisionesNombre(datos.nombre, res, next)
-  else if (datos.nombrePais) getDivisionesPais(datos.nombrePais, res, next)
-  else if (datos.nivel) getDivisionesNivel(datos.nivel, res, next)
-  else if (datos.nombre && datos.nombrePais) getDivisionesNombrePais(datos.nombre, datos.nombrePais, res, next)
-  else if (datos.nombre && datos.nivel) getDivisionesNombreNivel(datos.nombre, datos.nivel, res, next)
-  else if (datos.nombrePais && datos.nivel) getDivisionesPaisNivel(datos.nombrePais, datos.nivel, res, next)
-  else if (datos.nombre && datos.nombrePais && datos.nivel) getDivisionesNombrePaisNivel(datos.nombre, datos.nombrePais, datos.nivel, res, next)
-  else getDivisiones(req, res, next)
+  var role = getUserRole(req)
+  var options
+  if (datos.nombre && datos.pais && datos.nivel) {
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, nivel: parseInt(datos.nivel), state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' }, state: 'A' }
+      }]
+    }
+    else options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, nivel: parseInt(datos.nivel) },
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' } }
+      }]
+    }
+  }
+  else if (datos.pais && datos.nivel) {
+    if (role == 'observer') options = {
+      where: { nivel: parseInt(datos.nivel), state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' }, state: 'A' }
+      }]
+    }
+    else options = {
+      where: { nivel: parseInt(datos.nivel) },
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' } }
+      }]
+    }
+  }
+  else if (datos.nombre && datos.nivel) {
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, nivel: parseInt(datos.nivel), state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { state: 'A' }
+      }]
+    }
+    else options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, nivel: parseInt(datos.nivel) },
+      include: [{
+        model: pais, required: true
+      }]
+    }
+  }
+  else if (datos.nombre && datos.pais) {
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' }, state: 'A' }
+      }]
+    }
+    else options = {
+      where: {
+        nombre: { [Op.iLike]: '%' + datos.nombre + '%' },
+        include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' } }
+        }]
+      }
+    }
+  }
+  else if (datos.nombre) {
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { state: 'A' }
+      }]
+    }
+    else options = {
+      where: {
+        nombre: { [Op.iLike]: '%' + datos.nombre + '%' },
+        include: [{
+          model: pais, required: true
+        }]
+      }
+    }
+  }
+  else if (datos.pais) {
+    if (role == 'observer') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' }, state: 'A' }
+      }]
+    }
+    else options = {
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' }}
+      }]
+    }
+  }
+  else if (datos.nivel) {
+    if (role == 'observer') options = {
+      where: { nivel: parseInt(datos.nivel), state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { state: 'A' }
+      }]
+    }
+    else options = {
+      where: { nivel: parseInt(datos.nivel)},
+      include: [{
+        model: pais, required: true
+      }]
+    }
+  } 
+  else {
+    if (role == 'observer') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state', 'audCreatedAt', 'audUpdatedAt'] },
+      include: [{
+        model: pais, required: true, where: { state: 'A' }
+      }]
+    }
+    else options = {
+      include: [{
+        model: pais, required: true
+      }]
+    }
+  } 
+  getDivisiones(options, role, req, res, next)
 
 }
 
@@ -435,28 +561,107 @@ exports.disableDivision = async function (req, res, next) {
   try {
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
-      const d = await divisiones.update({
-        state: "I",
+      await divisiones.update({
+        state: 'I',
         audDeletedAt: Date.now()
       }, {
-        where: { id: parseInt(req.body.id, 10) }
-      }, { transaction: t })
-
-      var dhijos = divisiones.update({
-        state: "I",
-        audDeletedAt: Date.now()
-      }, {
-        where: { id: d.id }
+        where: { idPais: parseInt(req.body.id) }
       })
+      let nivel = parseInt(req.body.nivel)
 
-      if (dhijos[0]) {
-        for (var a of dhijos) {
-          divisiones.update({
-            state: "I",
+      if (nivel == 3) {
+        await estacion.update({
+          state: 'I',
+          audDeletedAt: Date.now()
+        }, {
+          where: { idUbicacion: parseInt(req.body.id) }, returning: true, plain: true
+        })
+        var estaciones = await estacion.findAll({
+          where: { idUbicacion: parseInt(req.body.id) }
+        })
+        console.log(estaciones)
+        for (var e of estaciones) {
+          await observer.update({
+            state: 'I',
             audDeletedAt: Date.now()
           }, {
-            where: { id: a.id }
+            where: { idEstacion: e.id }
           })
+        }
+      }
+
+      else if (nivel == 2) {
+        await divisiones.update({
+          state: 'I',
+          audDeletedAt: Date.now()
+        }, {
+          where: { idPadre: parseInt(req.body.id) }
+        })
+        var d = divisiones.findAll({
+          where: { idPadre: parseInt(req.body.id) }
+        })
+        for (var divi of d) {
+          await estacion.update({
+            state: 'I',
+            audDeletedAt: Date.now()
+          }, {
+            where: { idUbicacion: divi.id }, returning: true, plain: true
+          })
+          var estaciones = await estacion.findAll({
+            where: { idUbicacion: divi.id }
+          })
+          console.log(estaciones)
+          for (var e of estaciones) {
+            await observer.update({
+              state: 'I',
+              audDeletedAt: Date.now()
+            }, {
+              where: { idEstacion: e.id }
+            })
+          }
+        }
+      }
+
+      else if (nivel == 1) {
+        await divisiones.update({
+          state: 'I',
+          audDeletedAt: Date.now()
+        }, {
+          where: { idPadre: parseInt(req.body.id) }
+        })
+        var d = divisiones.findAll({
+          where: { idPadre: parseInt(req.body.id) }
+        })
+        for (var divis of d) {
+          await divisiones.update({
+            state: 'I',
+            audDeletedAt: Date.now()
+          }, {
+            where: { idPadre: divis.id }
+          })
+          var d = divisiones.findAll({
+            where: { idPadre: divis.id }
+          })
+          for (var divi of d) {
+            await estacion.update({
+              state: 'I',
+              audDeletedAt: Date.now()
+            }, {
+              where: { idUbicacion: divi.id }, returning: true, plain: true
+            })
+            var estaciones = await estacion.findAll({
+              where: { idUbicacion: divi.id }
+            })
+            console.log(estaciones)
+            for (var e of estaciones) {
+              await observer.update({
+                state: 'I',
+                audDeletedAt: Date.now()
+              }, {
+                where: { idEstacion: e.id }
+              })
+            }
+          }
         }
       }
     })

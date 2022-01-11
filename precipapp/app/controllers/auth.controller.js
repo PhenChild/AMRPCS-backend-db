@@ -52,7 +52,7 @@ exports.signin = (req, res) => {
         pais: user.Pais.nombre,
         foto: user.foto.toString('base64'),
         token: token
-      }  
+      }
     }
     else {
       json = {
@@ -66,7 +66,7 @@ exports.signin = (req, res) => {
         token: token
       }
     }
-    
+
     if (userRole == 'OBSERVER') {
       getHasPluvObs(user.id).then(pl => {
         json["tiene_pluv"] = pl
@@ -100,38 +100,59 @@ async function getHasPluvObs(idUser) {
 /*----------------------------------------------------
 ----------------------------------------------------*/
 
-exports.signup = (req, res) => {
+exports.signup = async (req, res) => {
   // Save User to Database
   var a
   if (!req.file) a = null
   else a = Buffer.from(req.file.buffer)
-  User.create({
-    email: req.body.email,
-    password: bcrypt.hashSync(req.body.password, 8),
-    nombre: req.body.nombre,
-    apellido: req.body.apellido,
-    telefono: req.body.telefono,
-    idPais: parseInt(req.body.idPais),
-    state: 'A',
-    foto: a,
-    role: req.body.role
+
+  var u = await User.findOne({
+    where: { email: req.body.email },
+    attributes: [id]
   })
-    .then(user => {
-      if (user.role == 'observer') {
-        for (var est of req.body.estaciones) {
-          var obs = Observador.create({
-            state: 'A',
-            idEstacion: parseInt(est.id),
-            idUser: user.id
-          })
-          res.status(200).send({message: "User created"})
+
+  if (u.id) {
+    await User.update({
+      password: bcrypt.hashSync(req.body.password, 8),
+      nombre: req.body.nombre,
+      apellido: req.body.apellido,
+      telefono: req.body.telefono,
+      idPais: parseInt(req.body.idPais),
+      state: 'A',
+      foto: a,
+      role: req.body.role
+    })
+    res.status(200).send({ message: "User created" })
+  }
+  else {
+    await User.create({
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 8),
+      nombre: req.body.nombre,
+      apellido: req.body.apellido,
+      telefono: req.body.telefono,
+      idPais: parseInt(req.body.idPais),
+      state: 'A',
+      foto: a,
+      role: req.body.role
+    })
+      .then(user => {
+        if (user.role == 'observer') {
+          for (var est of req.body.estaciones) {
+            var obs = Observador.create({
+              state: 'A',
+              idEstacion: parseInt(est.id),
+              idUser: user.id
+            })
+            res.status(200).send({ message: "User created" })
+          }
+        } else {
+          // user role by default
+          res.send({ message: 'User was registered without role successfully!' })
         }
-      } else {
-        // user role by default
-        res.send({ message: 'User was registered without role successfully!' })
-      }
-    })
-    .catch(err => {
-      res.status(500).send({ message: err.message })
-    })
+      })
+      .catch(err => {
+        res.status(500).send({ message: err.message })
+      })
+  }
 }

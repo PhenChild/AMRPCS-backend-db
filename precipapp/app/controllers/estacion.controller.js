@@ -1,42 +1,66 @@
 const Sequelize = require('../models')
 const pais = require('../models').Pais
 const division = require('../models').Division
+const observadores = require('../models').Observador
+const precipitaciones = require('../models').Precipitacion
+const acumulados = require('../models').PrecAcum
+const cuestionarios = require('../models').Cuestionario
+const user = require('../models').User
 const Op = require('sequelize').Op
 const estacion = require('../models').Estacion
 
-getEstaciones = async function (req, res, next) {
-  try {
-    var estaciones = await estacion.findAll({
-      where: { state: 'A' },
-      attributes: { exclude: ['state', 'foto'] },
-      include: [{
-        model: division, required: false, where: { state: 'A' }, include: [{
-          model: pais, required: false, where: { state: 'A' }
-        }]
-      }]
+getUserRole = async function (req) {
+  var role = 'observer'
+  if (req.userId >= 0) {
+    var u = await user.findOne({
+      where: { id: req.userId, state: "A" },
+      attributes: ['role']
     })
-    console.log("edwin")
-    var json = []
+    if (u.role == 'admin') role = 'admin'
+  }
+  return role
+}
 
+getEstaciones = async function (options, role, req, res, next) {
+  try {
+    var role = getUserRole(req)
+
+    var estaciones = await estacion.findAll(options)
+
+    var json = []
     for (var e of estaciones) {
-      console.log(e.idUbicacion)
-      var d3 = await division.findOne({
-        where: { id: e.idUbicacion, state: 'A' },
-        required: true
-      })
-      console.log(d3.idPadre)
-  
-      var d2 = await division.findOne({
-        where: {id: d3.idPadre, state: 'A' },
-        required: true
-      })
-  
-      var d1 = await division.findOne({
-        where: {id: d2.idPadre, state: 'A' },
-        required: true
-      })
-  
-      jsonEstacion = {
+      var d3
+      var d2
+      var d1
+      if (role == 'observer') {
+        d3 = await division.findOne({
+          where: { id: e.idUbicacion, state: 'A' },
+          required: true
+        })
+        d2 = await division.findOne({
+          where: { id: d3.idPadre, state: 'A' },
+          required: true
+        })
+        d1 = await division.findOne({
+          where: { id: d2.idPadre, state: 'A' },
+          required: true
+        })
+      } else {
+        d3 = await division.findOne({
+          where: { id: e.idUbicacion },
+          required: true
+        })
+        d2 = await division.findOne({
+          where: { id: d3.idPadre },
+          required: true
+        })
+        d1 = await division.findOne({
+          where: { id: d2.idPadre },
+          required: true
+        })
+      }
+
+      var jsonEstacion = {
         nombre: e.nombre,
         Division: e.Division,
         altitud: e.altitud,
@@ -50,6 +74,13 @@ getEstaciones = async function (req, res, next) {
         division1: d1,
         division2: d2,
         division3: d3,
+        audCreatedAt: e.audCreatedAt,
+        audUpdatedAt: e.audUpdatedAt,
+        state: e.state
+      }
+      if (role == 'observer') {
+        jsonEstacion.audCreatedAt = ''
+        jsonEstacion.audUpdatedAt = ''
       }
       json.push(jsonEstacion)
     }
@@ -82,14 +113,186 @@ getEstacionesSinDivision = async function (req, res, next) {
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.nombre) getEstacionesNombre(datos.nombre, res, next)
-  else if (datos.codigo) getEstacionesCodigo(datos.codigo, res, next)
-  else if (datos.nombrePais) getEstacionesPais(datos.nombrePais, res, next)
-  else if (datos.nombre && datos.codigo) getEstacionesCodigoNombre(datos.codigo, datos.nombre, res, next)
-  else if (datos.nombre && datos.nombrePais) getEstacionesNombrePais(datos.nombre, datos.codigo, res, next)
-  else if (datos.nombrePais && datos.codigo) getEstacionesCodigoPais(datos.codigo, datos.nombrePais, res, next)
-  else if (datos.nombre && datos.nombrePais && datos.codigo) getEstacionesNombreCodigoPais(datos.nombre, datos.codigo, datos.nombrePais, res, next)
-  else getEstaciones(req, res, next)
+  var role = getUserRole(req)
+  var options
+  if (datos.nombre && datos.nombrePais && datos.codigo) {
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' }, state: 'A' }
+        }]
+      }]
+    }
+    else options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }},
+      attributes: { exclude: ['foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' } }
+        }]
+      }]
+    }
+  }
+  else if (datos.nombrePais && datos.codigo) {
+    if (role == 'observer') options = {
+      where: {
+        nombre: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' },
+        attributes: { exclude: ['state', 'foto'] },
+        required: true,
+        include: [{
+          model: division, required: true, where: { state: 'A' }, include: [{
+            model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' }, state: 'A' }
+          }]
+        }]
+      }
+    }
+    else options = {
+      where: {
+        nombre: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' } },
+        attributes: { exclude: ['foto'] },
+        required: true,
+        include: [{
+          model: division, required: true, include: [{
+            model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' } }
+          }]
+        }]
+      }
+    }
+  }
+  else if (datos.nombre && datos.nombrePais) { 
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' }, state: 'A' }
+        }]
+      }]
+    }
+    else options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' } },
+      attributes: { exclude: ['foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' } }
+        }]
+      }]
+    }
+  }
+  else if (datos.nombre && datos.codigo) {
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { state: 'A' }
+        }]
+      }]
+    }
+    else options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' } },
+      attributes: { exclude: ['foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, include: [{
+          model: pais, required: true
+        }]
+      }]
+    }
+  }
+  else if (datos.nombre) {
+    if (role == 'observer') options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { state: 'A' }
+        }]
+      }]
+    }
+    else options = {
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' } },
+      attributes: { exclude: ['foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, include: [{
+          model: pais, required: true
+        }]
+      }]
+    }
+  }
+  else if (datos.codigo) {
+    if (role == 'observer') options = {
+      where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { state: 'A' }
+        }]
+      }]
+    }
+    else options = {
+      where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' } },
+      attributes: { exclude: ['foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, include: [{
+          model: pais, required: true
+        }]
+      }]
+    }
+  }
+  else if (datos.nombrePais) {
+    if (role == 'observer') options = {
+      where: { state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' }, state: 'A' }
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' } }
+        }]
+      }]
+    }
+  }
+  else {
+    if (role == 'observer') options = {
+      where: { state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      include: [{
+        model: division, required: false, where: { state: 'A' }, include: [{
+          model: pais, required: false, where: { state: 'A' }
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['foto'] },
+      include: [{
+        model: division, required: false, include: [{
+          model: pais, required: false
+        }]
+      }]
+    }
+  }
+  
+  getEstaciones(options, role, req, res, next)
 
 }
 
@@ -103,54 +306,12 @@ exports.getFiltroSinDivision = async function (req, res, next) {
 
 }
 
-getEstacionesCodigo = async function (codigo, res, next) {
-  try {
-    await estacion.findAll({
-      where: { codigo: { [Op.iLike]: '%' + codigo + '%' }, state: 'A' },
-      attributes: { exclude: ['state', 'foto'] },
-      required: true,
-      include: [{
-        model: division, required: true, where: { state: 'A' }, include: [{
-          model: pais, required: true, where: { state: 'A' }
-        }]
-      }]
-    })
-      .then(estaciones => {
-        res.json(estaciones)
-      })
-      .catch(err => res.json(err))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
 getEstacionesCodigoSinDivision = async function (codigo, res, next) {
   try {
     await estacion.findAll({
       where: { codigo: { [Op.iLike]: '%' + codigo + '%' }, state: 'A' },
       attributes: { exclude: ['foto'] },
       required: true
-    })
-      .then(estaciones => {
-        res.json(estaciones)
-      })
-      .catch(err => res.json(err))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
-getEstacionesNombre = async function (nombre, res, next) {
-  try {
-    await estacion.findAll({
-      where: { nombre: { [Op.iLike]: '%' + nombre + '%' }, state: 'A' },
-      attributes: { exclude: ['state', 'foto'] },
-      required: true,
-      include: [{
-        model: division, required: true, where: { state: 'A' }, include: [{
-          model: pais, required: true, where: { state: 'A' }
-        }]
-      }]
     })
       .then(estaciones => {
         res.json(estaciones)
@@ -177,48 +338,6 @@ getEstacionesNombreSinDivision = async function (nombre, res, next) {
   }
 }
 
-getEstacionesPais = async function (nombrePais, res, next) {
-  try {
-    await estacion.findAll({
-      where: { state: 'A' },
-      attributes: { exclude: ['state', 'foto'] },
-      required: true,
-      include: [{
-        model: division, required: true, where: { state: 'A' }, include: [{
-          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + nombrePais + '%' }, state: 'A' }
-        }]
-      }]
-    })
-      .then(estaciones => {
-        res.json(estaciones)
-      })
-      .catch(err => res.json(err))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
-getEstacionesCodigoNombre = async function (codigo, nombre, res, next) {
-  try {
-    await estacion.findAll({
-      where: { codigo: { [Op.iLike]: '%' + codigo + '%' }, nombre: { [Op.iLike]: '%' + nombre + '%' }, state: 'A' },
-      attributes: { exclude: ['state', 'foto'] },
-      required: true,
-      include: [{
-        model: division, required: false, where: { state: 'A' }, include: [{
-          model: pais, required: false, where: { state: 'A' }
-        }]
-      }]
-    })
-      .then(estaciones => {
-        res.json(estaciones)
-      })
-      .catch(err => res.json(err))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
 getEstacionesCodigoNombreSinDivision = async function (codigo, nombre, res, next) {
   try {
     await estacion.findAll({
@@ -235,51 +354,9 @@ getEstacionesCodigoNombreSinDivision = async function (codigo, nombre, res, next
   }
 }
 
-getEstacionesNombrePais = async function (nombre, nombrePais, res, next) {
-  try {
-    await estacion.findAll({
-      where: { nombre: { [Op.iLike]: '%' + nombre + '%' }, state: 'A' },
-      attributes: { exclude: ['state', 'foto'] },
-      required: true,
-      include: [{
-        model: division, required: true, where: { state: 'A' }, include: [{
-          model: pais, required: true, where: { nombre: nombrePais, state: 'A' }
-        }]
-      }]
-    })
-      .then(estaciones => {
-        res.json(estaciones)
-      })
-      .catch(err => res.json(err))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
-getEstacionesCodigoPais = async function (codigo, nombrePais, res, next) {
-  try {
-    await estacion.findAll({
-      where: { codigo: { [Op.iLike]: '%' + codigo + '%' }, state: 'A' },
-      attributes: { exclude: ['state', 'foto'] },
-      required: true,
-      include: [{
-        model: division, required: true, where: { state: 'A' }, include: [{
-          model: pais, required: true, where: { nombre: nombrePais, state: 'A' }
-        }]
-      }]
-    })
-      .then(estaciones => {
-        res.json(estaciones)
-      })
-      .catch(err => res.json(err))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
 getEstacionesNombreCodigoPais = async function (nombre, codigo, nombrePais, res, next) {
   try {
-    await estacion.findAll({
+    var estaciones = await estacion.findAll({
       where: { nombre: { [Op.iLike]: '%' + nombre + '%' }, codigo: { [Op.iLike]: '%' + codigo + '%' }, state: 'A' },
       attributes: { exclude: ['state', 'foto'] },
       required: true,
@@ -289,10 +366,46 @@ getEstacionesNombreCodigoPais = async function (nombre, codigo, nombrePais, res,
         }]
       }]
     })
-      .then(estaciones => {
-        res.json(estaciones)
+
+    var json = []
+    for (var e of estaciones) {
+      console.log(e.idUbicacion)
+      var d3 = await division.findOne({
+        where: { id: e.idUbicacion, state: 'A' },
+        required: true
       })
-      .catch(err => res.json(err))
+      console.log(d3.idPadre)
+
+      var d2 = await division.findOne({
+        where: { id: d3.idPadre, state: 'A' },
+        required: true
+      })
+
+      var d1 = await division.findOne({
+        where: { id: d2.idPadre, state: 'A' },
+        required: true
+      })
+
+      jsonEstacion = {
+        nombre: e.nombre,
+        Division: e.Division,
+        altitud: e.altitud,
+        codigo: e.codigo,
+        direccion: e.direccion,
+        hasPluviometro: e.hasPluviometro,
+        id: e.id,
+        idUbicacion: e.idUbicacion,
+        posicion: e.posicion,
+        referencias: e.referencias,
+        division1: d1,
+        division2: d2,
+        division3: d3,
+      }
+      json.push(jsonEstacion)
+    }
+
+    res.json(json)
+
   } catch (error) {
     res.status(400).send({ message: error.message })
   }
@@ -328,7 +441,7 @@ exports.adminGetImage = async function (req, res, next) {
     })
       .then(estacion => {
         if (estacion.foto) res.json({ foto: estacion.foto.toString('base64') })
-        else res.json({ foto: '' } )
+        else res.json({ foto: '' })
       })
       .catch(err => res.status(419).send({ message: err.message }))
   } catch (error) {
@@ -339,6 +452,7 @@ exports.adminGetImage = async function (req, res, next) {
 exports.updateEstacion = async function (req, res, next) {
   try {
     const point = { type: 'Point', coordinates: [req.body.latitud, req.body.longitud] }
+    console.log("edwin")
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const est = await estacion.update({
@@ -348,7 +462,7 @@ exports.updateEstacion = async function (req, res, next) {
         direccion: req.body.direccion,
         hasPluviometro: (req.body.hasPluviometro === 'true'),
         referencias: req.body.referencias,
-        idUbicacion: parseInt(req.body.Division.id)
+        idUbicacion: parseInt(req.body.idUbicacion)
       }, {
         where: { id: parseInt(req.body.id) }
       }, { transaction: t })
@@ -383,33 +497,20 @@ exports.updateEstacionImage = async function (req, res, next) {
 }
 
 exports.disableEstacion = async function (req, res, next) {
-
   try {
     await Sequelize.sequelize.transaction(async (t) => {
-      const e = await estacion.update({
+      await estacion.update({
         state: 'I',
         audDeletedAt: Date.now()
       }, {
         where: { id: parseInt(req.body.id) }, returning: true, plain: true
       })
 
-      console.log(e)
-      await observer.update({
-        state: 'I'
+      await observadores.update({
+        state: 'I',
+        audDeletedAt: Date.now()
       }, {
         where: { idEstacion: parseInt(req.body.id) }
-      }).then(obs => {
-        console.log(obs)
-        if (obs !== 0) {
-          console.log('ingreso al for')
-          for (const o of obs) {
-            user.update({
-              role: 'user'
-            }, {
-              where: { id: o.idUser }
-            })
-          }
-        }
       })
       res.status(200).send({ message: 'Succesfully deleted' })
     }).catch(err => {
@@ -417,6 +518,63 @@ exports.disableEstacion = async function (req, res, next) {
     })
   } catch (error) {
     res.status(419).send({ message: error.message })
+  }
+}
+
+exports.getTipoRegistros = async function (req, res, next) {
+  try {
+    var jsonArr = []
+    console.log("algo")
+    console.log(req.body)
+    var prec = await precipitaciones.findAll({
+      attributes: ['id'],
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { idEstacion: req.body.id }
+      }]
+    })
+    console.log(prec)
+    if (prec[0]) {
+      let json = {
+        nombre: "Precipitación Diaria"
+      }
+      jsonArr.push(json)
+    }
+
+    var acum = await acumulados.findAll({
+      attributes: ['id'],
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { idEstacion: req.body.id }
+      }]
+    })
+    console.log(acum)
+    if (acum[0]) {
+      let json = {
+        nombre: "Precipitación Acumulada"
+      }
+      jsonArr.push(json)
+    }
+    var cues = await cuestionarios.findAll({
+      attributes: ['id'],
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { idEstacion: req.body.id }
+      }]
+    })
+    console.log(cues)
+
+    if (cues[0]) {
+      let json = {
+        nombre: "Percepción de Sequía (Mensual)"
+      }
+      jsonArr.push(json)
+    }
+
+    res.json(jsonArr)
+
+  } catch (error) {
+    res.status(400).send({ message: error.message })
   }
 }
 
@@ -430,12 +588,12 @@ exports.getHermanoDivisiones = async function (req, res, next) {
     })
 
     var padre = await division.findOne({
-      where: {id: d3.idPadre, state: 'A' },
+      where: { id: d3.idPadre, state: 'A' },
       required: true
     })
 
     var ret = await division.findAll({
-      where: {idPadre: padre.id, state: 'A' },
+      where: { idPadre: padre.id, state: 'A' },
       required: true
     })
 

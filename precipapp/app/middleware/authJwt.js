@@ -29,6 +29,26 @@ verifyToken = (req, res, next) => {
   })
 }
 
+verifyUser = (req, res, next) => {
+  const token = req.headers['x-access-token']
+
+  if (!token) {
+    req.userId = -1
+    next()
+  }
+  else {
+    jwt.verify(token, config.secret, (err, decoded) => {
+      if (err) {
+        return res.status(401).send({
+          message: 'Unauthorized!'
+        })
+      }
+      req.userId = decoded.id
+      next()
+    })
+  }
+}
+
 /*----------------------------------------------------
 ----------------------------------------------------*/
 
@@ -139,6 +159,8 @@ const authJwt = {
   // eslint-disable-next-line no-undef
   verifyToken: verifyToken,
   // eslint-disable-next-line no-undef
+  verifyUser: verifyUser,
+
   isAdmin: isAdmin,
   // eslint-disable-next-line no-undef
   isAdminByEmail: isAdminByEmail,

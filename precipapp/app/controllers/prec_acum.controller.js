@@ -31,19 +31,23 @@ exports.newAcumulados = async function (req, res, next) {
 
 /*----------------------------------------------------
 ----------------------------------------------------*/
-getAcumulados = async function (req, res, next) {
-  try {
-    await acumulados.findAll({
-      where: { state: "A" },
-      attributes: { exclude: ['state'] },
-      include: [{
-        model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
-        }, {
-          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
-      }]
-      }]
+
+getUserRole = async function (req) {
+  var role = 'observer'
+  if (req.userId >= 0) {
+    var u = await user.findOne({
+      where: { id: req.userId, state: "A" },
+      attributes: ['role']
     })
+    if (u.role == 'admin') role = 'admin'
+  }
+  return role
+}
+
+
+getAcumulados = async function (options, req, res, next) {
+  try {
+    await acumulados.findAll(options)
       .then(acumulados => {
         res.json(acumulados)
       })
@@ -78,190 +82,396 @@ exports.updatePais = async function (req, res, next) {
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.observador && datos.estacion && (datos.fechaInicio || datos.fechaFin)) getAcumuladosObservadorEstacionFecha(datos.observador, datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.observador && (datos.fechaInicio || datos.fechaFin)) getAcumuladosObservadorFecha(datos.observador, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.estacion && (datos.fechaInicio || datos.fechaFin)) getAcumuladosEstacionFecha(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.observador && datos.estacion) getAcumuladosObservadorEstacion(datos.observador, datos.estacion, res, next)
-  else if (datos.fechaInicio || datos.fechaFin) getAcumuladosFecha(datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.observador) getAcumuladosObservador(datos.observador, res, next)
-  else if (datos.estacion) getAcumuladosEstacion(datos.estacion, res, next)
-  else getAcumulados(req, res, next)
-
-}
-
-getAcumuladosObservador = async function (nombre, res, next) {
-  try {
-    await acumulados.findAll({
-      where: { state: "A" },
-      required: true,
-      attributes: { exclude: ['state'] },
-      include: [{
-        model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
-        }, {
-          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
-      }]
-      }]
-    })
-      .then(acumulados => {
-        res.json(acumulados)
-      })
-      .catch(err => res.json(err.message))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
-getAcumuladosEstacion = async function (nombreEstacion, res, next) {
-  try {
-    await acumulados.findAll({
-      where: { state: "A" },
-      required: true,
-      attributes: { exclude: ['state'] },
-      include: [{
-        model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
-        }, {
-          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
-      }]
-      }]
-    })
-      .then(acumulados => {
-        res.json(acumulados)
-      })
-      .catch(err => res.json(err.message))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
-getAcumuladosFecha = async function (fechaInicio, fechaFin, res, next) {
-  try {
-    var fI = fechaInicio
-    var fF = fechaFin
-    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
-    else if (!fechaFin) fF = Date.now()
-    await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
-      attributes: { exclude: ['state'] },
-      include: [{
-        model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
-        }, {
-          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
-      }]
-      }]
-    })
-      .then(acumulados => {
-        res.json(acumulados)
-      })
-      .catch(err => res.json(err.message))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
-getAcumuladosObservadorEstacion = async function (nombre, nombreEstacion, res, next) {
-  try {
-    await acumulados.findAll({
-      where: { state: "A" },
+  var fI = datos.fechaInicio
+  var fF = datos.fechaFin
+  if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
+  else if (!datos.fechaFin) fF = Date.now()
+  var role = getUserRole(req)
+  var options
+  if (datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
-          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
       }]
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo']
+        }]
       }]
-    })
-      .then(acumulados => {
-        res.json(acumulados)
-      })
-      .catch(err => res.json(err.message))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
+    }
   }
-}
-
-getAcumuladosEstacionFecha = async function (nombreEstacion, fechaInicio, fechaFin, res, next) {
-  try {
-    var fI = fechaInicio
-    var fF = fechaFin
-    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
-    else if (!fechaFin) fF = Date.now()
-    await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
+  else if (datos.codigo && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
           model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
-          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
       }]
-      }]
-    })
-      .then(acumulados => {
-        res.json(acumulados)
-      })
-      .catch(err => res.json(err.message))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
-  }
-}
-
-getAcumuladosObservadorFecha = async function (nombre, fechaInicio, fechaFin, res, next) {
-  try {
-    var fI = fechaInicio
-    var fF = fechaFin
-    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
-    else if (!fechaFin) fF = Date.now()
-    await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
       attributes: { exclude: ['state'] },
+      required: true,
       include: [{
-        model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { attributes: ['id', 'nombre', 'apellido']}
         }, {
-          model: estaciones, required: true, where: {state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }}, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo']
+        }]
       }]
-      }]
-    })
-      .then(acumulados => {
-        res.json(acumulados)
-      })
-      .catch(err => res.json(err.message))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
+    }
   }
-}
-
-getAcumuladosObservadorEstacionFecha = async function (nombre, nombreEstacion, fechaInicio, fechaFin, res, next) {
-  try {
-    var fI = fechaInicio
-    var fF = fechaFin
-    if (!fechaInicio) fI = new Date('December 17, 1995 03:24:00')
-    else if (!fechaFin) fF = Date.now()
-    await acumulados.findAll({
-      where: { fecha_inicio: {[Op.between]: [fI, new Date(Date.parse(fF) + 82800000)]},   state: "A" },
+  else if (datos.observador && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
-          model: usuarios, required: true, where: { [Op.or]: [{nombre: {[Op.iLike]: '%' + nombre + '%'}}, {apellido: {[Op.iLike]: '%' + nombre + '%'}}], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
-          model: estaciones, required: true, where: { nombre: {[Op.iLike]: '%' + nombreEstacion + '%'}, state: 'A' }, attributes: ['id', 'nombre', 'codigo'] 
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
       }]
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: {codigo: { [Op.iLike]: '%' + datos.codigo + '%' }}, attributes: ['id', 'nombre', 'codigo']
+        }]
       }]
-    })
-      .then(acumulados => {
-        res.json(acumulados)
-      })
-      .catch(err => res.json(err.message))
-  } catch (error) {
-    res.status(400).send({ message: error.message })
+    }
   }
+  else if (datos.observador && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }  }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }}, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: {state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' }}] }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  } 
+  else if (datos.observador && datos.codigo) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.estacion + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: {codigo: { [Op.iLike]: '%' + datos.estacion + '%' }}, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.estacion && datos.codigo) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: {  nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }}, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.estacion) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.fechaInicio || datos.fechaFin) {
+    if (role == 'observer ') options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: {state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha_inicio: { [Op.between]: [fI, new Date(Date.parse(fF) + 82800000)] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  } 
+  else if (datos.observador) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.codigo) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }}, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.estacion) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }]}, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  } 
+  else {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  getAcumulados(options, req, res, next)
 }
 
 exports.updateValor = async function (req, res, next) {
@@ -269,7 +479,8 @@ exports.updateValor = async function (req, res, next) {
     console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const prec = await acumulados.update({
-        valor: parseFloat(req.body.valor)
+        valor: parseFloat(req.body.valor),
+        comentario: req.body.comentario
       }, {
         where: { id: parseInt(req.body.id) }
       }, { transaction: t })

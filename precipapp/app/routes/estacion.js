@@ -9,6 +9,7 @@ router.get('/getAll',
   estacion.getEstaciones)
 
 router.get('/getAll/filtro',
+[authJwt.verifyUser],
   estacion.getFiltro)
 
 router.get('/getAll/filtroSinDivision',
@@ -26,6 +27,10 @@ router.post('/update',
 router.post(
   '/getPicture',
   estacion.adminGetImage)
+
+router.post(
+  '/getTipoRegistros',
+  estacion.getTipoRegistros)
 
 router.post(
   '/getHermanoEstaciones',

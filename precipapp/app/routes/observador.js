@@ -25,7 +25,6 @@ router.patch(
 ----------------------------------------------------*/
 
 router.post('/getObsEstacion',
-  [authJwt.verifyToken],
   observador.getObservadores)
 
   router.post('/getUserEstacion',
