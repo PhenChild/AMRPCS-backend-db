@@ -29,6 +29,21 @@ getPaises = async function (options, req, res, next) {
   }
 }
 
+exports.getAll = async function (req, res, next) {
+  try {
+    await paises.findAll({
+      where: {
+        state: 'A'
+      }
+    })
+      .then(paises => {
+        res.json(paises)
+      })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
 module.exports.getPaises = getPaises
 
 exports.getFiltro = async function (req, res, next) {
@@ -43,7 +58,7 @@ exports.getFiltro = async function (req, res, next) {
       attributes: ['nombre', 'siglas']
     }
     else options = {
-      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, siglas: { [Op.iLike]: '%' + datos.siglas + '%' }}
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, siglas: { [Op.iLike]: '%' + datos.siglas + '%' } }
     }
   }
   else if (datos.nombre) {
@@ -52,7 +67,7 @@ exports.getFiltro = async function (req, res, next) {
       attributes: ['nombre', 'siglas']
     }
     else options = {
-      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }}
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' } }
     }
   }
   else if (datos.siglas) {
@@ -61,7 +76,7 @@ exports.getFiltro = async function (req, res, next) {
       attributes: ['nombre', 'siglas']
     }
     else options = {
-      where: { siglas: { [Op.iLike]: '%' + datos.siglas + '%' }}
+      where: { siglas: { [Op.iLike]: '%' + datos.siglas + '%' } }
     }
   }
   else {
@@ -70,7 +85,7 @@ exports.getFiltro = async function (req, res, next) {
       attributes: ['nombre', 'siglas']
     }
     else options = {
-      where: { }
+      where: {}
     }
   }
   getPaises(options, req, res, next)
@@ -167,19 +182,28 @@ exports.disablePais = async function (req, res, next) {
         audDeletedAt: Date.now()
       }, {
         where: {
-          idPais: parseInt(req.body.id)
-        },
-        returning: true,
-        plain: true
+          idPais: parseInt(req.body.id, 10)
+        }
       })
-      if (u.role == 'observer') {
-        await observer.update({
-          state: 'I',
-          audDeletedAt: Date.now()
-        }, {
-          where: { idUser: u.id }
-        })
+      var us = await user.findAll({
+        where: {
+          idPais: parseInt(req.body.id, 10)
+        }
+      })
+      console.log("usuarios eliminados")
+      if (us[0]) {
+        for (var a of us) {
+          if (a.role == 'observer') {
+            await observer.update({
+              state: 'I',
+              audDeletedAt: Date.now()
+            }, {
+              where: { idUser: a.id }
+            })
+          }
+        }
       }
+      console.log("observadores eliminados")
       await divisiones.update({
         state: 'I',
         audDeletedAt: Date.now()
@@ -187,31 +211,55 @@ exports.disablePais = async function (req, res, next) {
         where: { idPais: req.body.id }
       })
       var d = await divisiones.findAll({
-        where: { idPais: req.body.id, nivel: 3}
+        where: { idPais: req.body.id, nivel: 3 }
       })
-      for (var division of d) {
-        await estacion.update({
-          state: 'I',
-          audDeletedAt: Date.now()
-        }, {
-          where: { idUbicacion: division.id }, returning: true, plain: true
-        })
-        var estaciones = await estacion.findAll({
-          where: { idUbicacion: division.id }
-        })
-        console.log(estaciones)
-        for (var e of estaciones) {
-          await observer.update({
+      if (d[0]) {
+        for (var division of d) {
+          await estacion.update({
             state: 'I',
             audDeletedAt: Date.now()
           }, {
-            where: { idEstacion: e.id }
+            where: { idUbicacion: division.id }, returning: true, plain: true
           })
+          var estaciones = await estacion.findAll({
+            where: { idUbicacion: division.id }
+          })
+          console.log(estaciones)
+          if (estaciones[0]) {
+            for (var e of estaciones) {
+              await observer.update({
+                state: 'I',
+                audDeletedAt: Date.now()
+              }, {
+                where: { idEstacion: e.id }
+              })
+            }
+          }
         }
       }
-    })
+    }, {transaction: t})
     res.status(200).send({ message: 'Succesfully disable' })
   } catch (error) {
+    console.log(error)
+    res.status(400).send({ message: error.message })
+  }
+}
+
+exports.activatePais = async function (req, res, next) {
+  try {
+    await Sequelize.sequelize.transaction(async (t) => {
+      await paises.update({
+        state: 'A'
+      }, {
+        where: { id: parseInt(req.body.id) }, returning: true, plain: true
+      })
+
+      res.status(200).send({ message: 'Succesfully Activated' })
+    }).catch(err => {
+      res.status(400).send({ message: err.message })
+    })
+  }
+  catch (error) {
     res.status(400).send({ message: error.message })
   }
 }

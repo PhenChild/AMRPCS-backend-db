@@ -571,3 +571,22 @@ exports.deleteUser = async function (req, res, next) {
     res.status(419).send({ message: error.message })
   }
 }
+
+exports.activateUser = async function (req, res, next) {
+  try {
+    await Sequelize.sequelize.transaction(async (t) => {
+      await user.update({
+        state: 'A'
+      }, {
+        where: { id: parseInt(req.body.id) }, returning: true, plain: true
+      })
+
+      res.status(200).send({ message: 'Succesfully Activated' })
+    }).catch(err => {
+      res.status(400).send({ message: err.message })
+    })
+  }
+  catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}

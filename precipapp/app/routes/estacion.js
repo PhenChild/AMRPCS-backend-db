@@ -9,7 +9,7 @@ router.get('/getAll',
   estacion.getEstaciones)
 
 router.get('/getAll/filtro',
-[authJwt.verifyUser],
+  [authJwt.verifyUser],
   estacion.getFiltro)
 
 router.get('/getAll/filtroSinDivision',
@@ -39,9 +39,14 @@ router.post(
 
 router.post(
   '/updatePicture',
-  [authJwt.verifyToken, authJwt.isAdmin],
+  [authJwt.verifyToken],
   upload.single('file'),
   estacion.updateEstacionImage)
+
+router.post(
+  '/activateEstacion',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  estacion.activateEstacion)
 
 router.post('/delete',
   [authJwt.verifyToken, authJwt.isAdmin],

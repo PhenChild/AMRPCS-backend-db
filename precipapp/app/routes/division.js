@@ -4,23 +4,23 @@ const { authJwt } = require('../middleware')
 const division = require('../controllers/division.controller')
 
 router.get('/getAll',
-division.getDivisiones)
+  division.getDivisiones)
 
 router.post('/getDivisionesPaisNivelOne',
-[authJwt.verifyToken, authJwt.isAdmin],
-division.getDivisionesPaisNivelOne)
+  [authJwt.verifyToken, authJwt.isAdmin],
+  division.getDivisionesPaisNivelOne)
 
 router.post('/getDivisionesSuperiores',
-[authJwt.verifyToken, authJwt.isAdmin],
-division.getDivisionesDivisiones)
+  [authJwt.verifyToken, authJwt.isAdmin],
+  division.getDivisionesDivisiones)
 
 router.post('/getDivisionesInferiores',
-[authJwt.verifyToken, authJwt.isAdmin],
-division.getDivisionesInferiores)
+  [authJwt.verifyToken, authJwt.isAdmin],
+  division.getDivisionesInferiores)
 
 router.post('/getDivisionesPais',
-[authJwt.verifyToken, authJwt.isAdmin],
-division.getDivisionesPais)
+  [authJwt.verifyToken, authJwt.isAdmin],
+  division.getDivisionesPais)
 
 router.get('/getAll/filtro',
   [authJwt.verifyToken, authJwt.isAdmin],
@@ -34,8 +34,14 @@ router.post('/update',
   [authJwt.verifyToken, authJwt.isAdmin],
   division.updateDivision)
 
+router.post(
+  '/activateDivision',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  division.activateDivision)
+
+
 router.post('/delete',
-[authJwt.verifyToken, authJwt.isAdmin],
-division.disableDivision)
+  [authJwt.verifyToken, authJwt.isAdmin],
+  division.disableDivision)
 
 module.exports = router

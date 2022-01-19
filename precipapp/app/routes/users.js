@@ -60,6 +60,11 @@ router.post(
   user.adminGetImage)
 
 router.post(
+  '/users/activateUser',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  user.activateUser)
+
+router.post(
   '/users/updatePicture',
   [authJwt.verifyToken, authJwt.isAdmin],
   upload.single('file'),

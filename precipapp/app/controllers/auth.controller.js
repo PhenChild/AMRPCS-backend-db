@@ -108,21 +108,12 @@ exports.signup = async (req, res) => {
 
   var u = await User.findOne({
     where: { email: req.body.email },
-    attributes: [id]
+    attributes: ['id']
   })
 
-  if (u.id) {
-    await User.update({
-      password: bcrypt.hashSync(req.body.password, 8),
-      nombre: req.body.nombre,
-      apellido: req.body.apellido,
-      telefono: req.body.telefono,
-      idPais: parseInt(req.body.idPais),
-      state: 'A',
-      foto: a,
-      role: req.body.role
-    })
-    res.status(200).send({ message: "User created" })
+  if (u) {
+    res.status(418).send({ message: "User already exists" })
+    return
   }
   else {
     await User.create({
@@ -145,10 +136,12 @@ exports.signup = async (req, res) => {
               idUser: user.id
             })
             res.status(200).send({ message: "User created" })
+            return
           }
         } else {
           // user role by default
           res.send({ message: 'User was registered without role successfully!' })
+          return
         }
       })
       .catch(err => {

@@ -11,7 +11,10 @@ const estacion = require('../models').Estacion
 
 getUserRole = async function (req) {
   var role = 'observer'
-  if (req.userId >= 0) {
+  if (!req.userId) {
+    role = 'user'
+  }
+  else if (req.userId >= 0) {
     var u = await user.findOne({
       where: { id: req.userId, state: "A" },
       attributes: ['role']
@@ -23,7 +26,15 @@ getUserRole = async function (req) {
 
 getEstaciones = async function (options, role, req, res, next) {
   try {
-    var role = getUserRole(req)
+    var u
+    console.log('Rol: ')
+    console.log(role)
+    if (role == 'observer') {
+      u = await observadores.findAll({
+        where: { idUser: req.userId, state: "A" },
+        attributes: ['idEstacion']
+      })
+    }
 
     var estaciones = await estacion.findAll(options)
 
@@ -32,7 +43,7 @@ getEstaciones = async function (options, role, req, res, next) {
       var d3
       var d2
       var d1
-      if (role == 'observer') {
+      if (role == 'observer' || role == 'user') {
         d3 = await division.findOne({
           where: { id: e.idUbicacion, state: 'A' },
           required: true
@@ -76,11 +87,18 @@ getEstaciones = async function (options, role, req, res, next) {
         division3: d3,
         audCreatedAt: e.audCreatedAt,
         audUpdatedAt: e.audUpdatedAt,
-        state: e.state
+        state: e.state,
+        itsMine: ''
       }
-      if (role == 'observer') {
+      if (role == 'observer' || role == 'user') {
         jsonEstacion.audCreatedAt = ''
         jsonEstacion.audUpdatedAt = ''
+      }
+      if (role == 'observer') {
+        console.log('estoy valiendo edwin')
+        for (var o of u) {
+          if (o.idEstacion == e.id) jsonEstacion.itsMine = true
+        }
       }
       json.push(jsonEstacion)
     }
@@ -113,7 +131,7 @@ getEstacionesSinDivision = async function (req, res, next) {
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  var role = getUserRole(req)
+  var role = await getUserRole(req)
   var options
   if (datos.nombre && datos.nombrePais && datos.codigo) {
     if (role == 'observer') options = {
@@ -127,7 +145,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }},
+      where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' } },
       attributes: { exclude: ['foto'] },
       required: true,
       include: [{
@@ -139,31 +157,27 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.nombrePais && datos.codigo) {
     if (role == 'observer') options = {
-      where: {
-        nombre: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' },
-        attributes: { exclude: ['state', 'foto'] },
-        required: true,
-        include: [{
-          model: division, required: true, where: { state: 'A' }, include: [{
-            model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' }, state: 'A' }
-          }]
+      where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' }, state: 'A' }
         }]
-      }
+      }]
     }
     else options = {
-      where: {
-        nombre: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' } },
-        attributes: { exclude: ['foto'] },
-        required: true,
-        include: [{
-          model: division, required: true, include: [{
-            model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' } }
-          }]
+      where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' } },
+      attributes: { exclude: ['foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.nombrePais + '%' } }
         }]
-      }
+      }]
     }
   }
-  else if (datos.nombre && datos.nombrePais) { 
+  else if (datos.nombre && datos.nombrePais) {
     if (role == 'observer') options = {
       where: { nombre: { [Op.iLike]: '%' + datos.nombre + '%' }, state: 'A' },
       attributes: { exclude: ['state', 'foto'] },
@@ -291,7 +305,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
   }
-  
+
   getEstaciones(options, role, req, res, next)
 
 }
@@ -413,6 +427,12 @@ getEstacionesNombreCodigoPais = async function (nombre, codigo, nombrePais, res,
 
 exports.createEstacion = async function (req, res, next) {
   try {
+    var e = await estacion.findOne({ where: { codigo: req.body.codigo } })
+    if (e) {
+      res.status(418).send({ message: 'Station already exists' })
+      return
+    }
+
     console.log(req.body)
     const point = { type: 'Point', coordinates: [parseFloat(req.body.latitud), parseFloat(req.body.longitud)] }
     await estacion.create({
@@ -477,17 +497,44 @@ exports.updateEstacion = async function (req, res, next) {
 
 exports.updateEstacionImage = async function (req, res, next) {
   try {
-    console.log(req.body)
+    var u = await user.findOne({
+      where: {
+        id: req.userId,
+        state: 'A'
+      }
+    })
+
     await Sequelize.sequelize.transaction(async (t) => {
-      var e = await estacion.update({
-        foto: Buffer.from(req.file.buffer)
-      }, {
-        where: {
-          id: parseInt(req.body.id)
-        },
-        returning: true,
-        plain: true
-      }, { transaction: t })
+      if (u.role == 'admin') {
+        var e = await estacion.update({
+          foto: Buffer.from(req.file.buffer)
+        }, {
+          where: {
+            id: parseInt(req.body.id)
+          },
+          returning: true,
+          plain: true
+        })
+      }
+      else {
+        var obs = await observadores.findAll({
+          where: { idUser: req.userId, state: "A" },
+          attributes: ['idEstacion']
+        })
+        for (var o of obs) {
+          if (o.idEstacion == parseInt(req.body.id)) {
+            var e = await estacion.update({
+              foto: Buffer.from(req.file.buffer)
+            }, {
+              where: {
+                id: parseInt(req.body.id)
+              },
+              returning: true,
+              plain: true
+            })
+          }
+        }
+      }
     })
     res.status(200).send({ message: 'Succesfully updated' })
   } catch (error) {
@@ -599,6 +646,34 @@ exports.getHermanoDivisiones = async function (req, res, next) {
 
     res.json(ret)
   } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+exports.activateEstacion = async function (req, res, next) {
+  try {
+    await Sequelize.sequelize.transaction(async (t) => {
+      var ubicacion = await division.findOne({
+        where: {
+          id: req.body.idUbicacion, state: 'A'
+        }
+      })
+      console.log(ubicacion)
+      if (ubicacion) {
+        await estacion.update({
+          state: 'A'
+        }, {
+          where: { id: parseInt(req.body.id) }, returning: true, plain: true
+        })
+        res.status(200).send({ message: 'Succesfully Activated' })
+      }
+      else res.status(418).send({ message: 'Ubicacion esta desactivada' })
+
+    }).catch(err => {
+      res.status(400).send({ message: err.message })
+    })
+  }
+  catch (error) {
     res.status(400).send({ message: error.message })
   }
 }

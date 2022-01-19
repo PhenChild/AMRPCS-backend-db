@@ -19,12 +19,8 @@ getUserRole = async function (req) {
 
 getDivisiones = async function (options, role, req, res, next) {
   try {
-    var resDivisiones
-    await divisiones.findAll(options)
-      .then(divisiones => {
-        resDivisiones = divisiones
-      })
-      .catch(err => res.json(err.message))
+    var resDivisiones = await divisiones.findAll(options)
+      
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -44,6 +40,7 @@ getDivisiones = async function (options, role, req, res, next) {
       arrayJson.push(datosDivision)
     }
     res.json(arrayJson)
+    return
   } catch (error) {
     res.status(400).send({ message: error.message })
   }
@@ -111,11 +108,11 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: {
-        nombre: { [Op.iLike]: '%' + datos.nombre + '%' },
-        include: [{
-          model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' } }
-        }]
-      }
+        nombre: { [Op.iLike]: '%' + datos.nombre + '%' }
+      },
+      include: [{
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' } }
+      }]
     }
   }
   else if (datos.nombre) {
@@ -128,11 +125,11 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: {
-        nombre: { [Op.iLike]: '%' + datos.nombre + '%' },
-        include: [{
-          model: pais, required: true
-        }]
-      }
+        nombre: { [Op.iLike]: '%' + datos.nombre + '%' }
+      },
+      include: [{
+        model: pais, required: true
+      }]
     }
   }
   else if (datos.pais) {
@@ -667,6 +664,35 @@ exports.disableDivision = async function (req, res, next) {
     })
     res.status(200).send({ message: 'Succesfully disable' })
   } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+exports.activateDivision = async function (req, res, next) {
+  try {
+    await Sequelize.sequelize.transaction(async (t) => {
+
+      var p = await pais.findOne({
+        where: {
+          id: parseInt(req.body.idPais)
+        }
+      })
+      if (p) {
+        await divisiones.update({
+          state: 'A'
+        }, {
+          where: { id: parseInt(req.body.id) }, returning: true, plain: true
+        })
+  
+        res.status(200).send({ message: 'Succesfully Activated' })
+      }
+      else res.status(418).send({ message: 'El Pais esta desactivada' })
+      
+    }).catch(err => {
+      res.status(400).send({ message: err.message })
+    })
+  }
+  catch (error) {
     res.status(400).send({ message: error.message })
   }
 }
