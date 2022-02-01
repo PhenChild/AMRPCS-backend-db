@@ -3,6 +3,7 @@ const observadores = require('../models').Observador
 const usuarios = require('../models').User
 const user = require('../models').User
 const estaciones = require('../models').Estacion
+const divisiones = require('../models').Division
 const Sequelize = require('../models')
 const Op = require('sequelize').Op
 
@@ -90,7 +91,157 @@ exports.getFiltro = async function (req, res, next) {
   console.log(fI)
   console.log(fF)
   var options
-  if (datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
+  if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.pais && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.pais && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' } }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.estacion && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.estacion && datos.codigo && datos.pais) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
       where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
       attributes: { exclude: ['state'] },
@@ -136,6 +287,189 @@ exports.getFiltro = async function (req, res, next) {
           model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.pais && datos.estacion && datos.codigo) {
+    console.log('pais, estacion, codigo')
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: {},
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.pais && datos.codigo) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: {},
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.estacion && datos.pais) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: {},
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.pais && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.codigo && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: {
+            codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+              model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+            }]
+          }
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
         }]
       }]
     }
@@ -286,6 +620,124 @@ exports.getFiltro = async function (req, res, next) {
           model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }] }, attributes: ['id', 'nombre', 'codigo']
+        }]
+      }]
+    }
+  }
+  else if (datos.pais && (datos.fechaInicio || datos.fechaFin)) {
+    if (role == 'observer ') options = {
+      where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      where: { fecha: { [Op.between]: [fI, fF] } },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.pais && datos.codigo) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' } }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.observador && datos.pais) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }], state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + datos.observador + '%' } }, { apellido: { [Op.iLike]: '%' + datos.observador + '%' } }] }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+  }
+  else if (datos.estacion && datos.pais) {
+    console.log('pais, estacion')
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' } }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
         }]
       }]
     }
@@ -459,6 +911,35 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
   }
+  else if (datos.pais) {
+    if (role == 'observer ') options = {
+      where: { state: "A" },
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+    else options = {
+      attributes: { exclude: ['state'] },
+      required: true,
+      include: [{
+        model: observadores, required: true, include: [{
+          model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
+        }, {
+          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+          }]
+        }]
+      }]
+    }
+  }
   else {
     if (role == 'observer ') options = {
       where: { state: "A" },
@@ -489,9 +970,9 @@ exports.getFiltro = async function (req, res, next) {
 getDatosGraficos = async function (req, res, next) {
   var datos = req.query
   var nombreEstacion = datos.estacion
-  var fechaInicio = new Date(new Date(datos.fechaInicio).setHours(42,59,59))
+  var fechaInicio = new Date(new Date(datos.fechaInicio).setHours(42, 59, 59))
   console.log(fechaInicio)
-  var fechaFin = new Date(new Date(datos.fechaFin).setHours(42,59,59))
+  var fechaFin = new Date(new Date(datos.fechaFin).setHours(42, 59, 59))
   console.log(fechaFin)
   var dates = getDates(fechaInicio, fechaFin)
   console.log(dates.length)
@@ -529,7 +1010,7 @@ getDatosGraficos = async function (req, res, next) {
     i += 1
   }
   for (i; i < tama; i++) {
-    jsonArray.push({fecha: dates[i], valor: -1})
+    jsonArray.push({ fecha: dates[i], valor: -1 })
   }
   res.json(jsonArray)
 }
