@@ -4,7 +4,6 @@ const { authJwt } = require('../middleware')
 const pais = require('../controllers/pais.controller')
 
 router.get('/get',
-  [authJwt.verifyToken],
   pais.getAll)
 
 router.get('/getAll/filtro',

@@ -80,15 +80,152 @@ module.exports.getAll = getAll
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.correo, datos.role, res, next)
+  if (datos.nombre && datos.correo && datos.role && datos.pais) getUsuariosNombreRolEmailpais(datos.nombre, datos.correo, datos.role, datos.pais, res, next)
+  else if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.correo, datos.role, res, next)
+  else if (datos.nombre && datos.pais && datos.role) getUsuariosNombrePaisRol(datos.nombre, datos.pais, datos.role, res, next)
+  else if (datos.pais && datos.correo && datos.role) getUsuariosPaisRolEmail(datos.pais, datos.role, datos.correo, res, next)
+  else if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.correo, datos.role, res, next)
   else if (datos.correo && datos.role) getUsuariosRolEmail(datos.role, datos.correo, res, next)
   else if (datos.nombre && datos.role) getUsuariosNombreRol(datos.nombre, datos.role, res, next)
+  else if (datos.pais && datos.role) getUsuariosPaisRol(datos.pais, datos.role, res, next)
   else if (datos.nombre && datos.correo) getUsuariosNombreEmail(datos.nombre, datos.correo, req, res, next)
+  else if (datos.nombre && datos.pais) getUsuariosNombrePais(datos.nombre, datos.pais, req, res, next)
   else if (datos.nombre) getUsuariosNombre(datos.nombre, req, res, next)
   else if (datos.correo) getUsuariosEmail(datos.correo, req, res, next)
-  else if (datos.role) getUsuariosRol(datos.role, res, next)
+  else if (datos.role) getUsuariosRol(datos.role, req, res, next)
+  else if (datos.pais) getUsuariosPais(datos.pais, req, res, next)
   else getAll(req, res, next)
 
+}
+
+getUsuariosPaisRol = async function (pai, role, res, next) {
+  try {
+    await user.findAll({
+      where: { role: role },
+      attributes: { exclude: ['password', 'foto'] }, include:[{
+        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+      }]
+    })
+      .then(user => {
+        res.json(user)
+      })
+      .catch(err => res.status(419).send({ message: err.message }))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+
+getUsuariosNombrePaisRol = async function (nombre, pai, role, res, next) {
+  try {
+    await user.findAll({
+      where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' } },
+      attributes: { exclude: ['password', 'foto'] }, include:[{
+        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+      }]
+    })
+      .then(user => {
+        res.json(user)
+      })
+      .catch(err => res.status(419).send({ message: err.message }))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getUsuariosPaisRolEmail = async function (pai, role, correo, res, next) {
+  try {
+    await user.findAll({
+      where: { role: role, email: { [Op.iLike]: '%' + correo + '%' } },
+      attributes: { exclude: ['password', 'foto'] }, include:[{
+        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+      }]
+    })
+      .then(user => {
+        res.json(user)
+      })
+      .catch(err => res.status(419).send({ message: err.message }))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getUsuariosNombrePais = async function (nombre, pai, req, res, next) {
+  var role = 'observer'
+  if (req.userId >= 0) {
+    var u = await user.findOne({
+      where: { id: req.userId, state: "A" },
+      attributes: ['role']
+    })
+    console.log(u)
+    if (u.role == 'admin') role = 'admin'
+  }
+  try {
+    if (role == 'admin') {
+      await user.findAll({
+        where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }] },
+        attributes: { exclude: ['password', 'foto'] }, include:[{
+          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        }]
+      })
+        .then(user => {
+          res.json(user)
+        })
+        .catch(err => res.status(419).send({ message: err.message }))
+    }
+    else {
+      await user.findAll({
+        where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' }, email: { [Op.iLike]: '%' + correo + '%' }, state: "A" },
+        attributes: ['nombre', 'apellido', 'role'], include:[{
+          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        }]
+      })
+        .then(user => {
+          res.json(user)
+        })
+        .catch(err => res.status(419).send({ message: err.message }))
+    }
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getUsuariosPais = async function (pai, req, res, next) {
+  var role = 'observer'
+  if (req.userId >= 0) {
+    var u = await user.findOne({
+      where: { id: req.userId, state: "A" },
+      attributes: ['role']
+    })
+    if (u.role == 'admin') role = 'admin'
+  }
+  try {
+    if (role == 'admin') {
+      await user.findAll({
+        attributes: { exclude: ['password', 'foto'] }, include:[{
+          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        }]
+      })
+        .then(user => {
+          res.json(user)
+        })
+        .catch(err => res.status(419).send({ message: err.message }))
+    }
+    else {
+      await user.findAll({
+        where: { role: role, state: "A" },
+        attributes: ['nombre', 'apellido', 'role'], include:[{
+          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        }]
+      })
+        .then(user => {
+          res.json(user)
+        })
+        .catch(err => res.status(419).send({ message: err.message }))
+    }
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
 }
 
 getUsuariosNombre = async function (nombre, req, res, next) {
