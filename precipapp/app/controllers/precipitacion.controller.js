@@ -978,6 +978,18 @@ getDatosGraficos = async function (req, res, next) {
   console.log(dates.length)
 
   var jsonArray = []
+
+  var est = await estaciones.findAll({
+    where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombreEstacion + '%' } }, { codigo: { [Op.iLike]: '%' + nombreEstacion + '%' } }], state: 'A' },
+    attributes: { exclude: ['foto'] }
+  })
+    .then(estacion => {
+      if (!estacion[0]) {
+        res.status(418).send({ message: 'Not found' })
+        return
+      }
+    })
+
   var datesPrec = await precipitaciones.findAll({
     where: { fecha: { [Op.between]: [fechaInicio, fechaFin] }, state: "A" },
     order: [
@@ -993,9 +1005,9 @@ getDatosGraficos = async function (req, res, next) {
       }]
     }]
   })
+  console.log(datesPrec)
   if (!datesPrec[0]) {
-    res.status(418).send({ message: 'Not found' })
-    return
+    datesPrec[0] = fechaFin
   }
   var tama = dates.length
   var i = 0
@@ -1006,8 +1018,15 @@ getDatosGraficos = async function (req, res, next) {
       jsonArray.push(j)
       i += 1
     }
-    jsonArray.push(prec)
-    i += 1
+    if (prec == fechaFin) {
+      var j = { fecha: dates[i], valor: -1 }
+      jsonArray.push(j)
+      i += 1
+    }
+    else {
+      jsonArray.push(prec)
+      i += 1
+    }
   }
   for (i; i < tama; i++) {
     jsonArray.push({ fecha: dates[i], valor: -1 })
