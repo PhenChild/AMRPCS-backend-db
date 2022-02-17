@@ -267,7 +267,7 @@ getUsuariosNombre = async function (nombre, req, res, next) {
   }
 }
 
-getUsuariosRol = async function (role, res, next) {
+getUsuariosRol = async function (role, req, res, next) {
   try {
     await user.findAll({
       where: { role: role },
