@@ -50,7 +50,7 @@ router.post(
 
 router.post(
   '/user/updatePicture',
-  [authJwt.verifyToken, authJwt.isAdmin],
+  [authJwt.verifyToken],
   upload.single('file'),
   user.updateImage)
 
