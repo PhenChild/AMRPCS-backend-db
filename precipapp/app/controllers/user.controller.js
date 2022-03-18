@@ -80,11 +80,10 @@ module.exports.getAll = getAll
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.nombre && datos.correo && datos.role && datos.pais) getUsuariosNombreRolEmailpais(datos.nombre, datos.correo, datos.role, datos.pais, res, next)
-  else if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.correo, datos.role, res, next)
+  if (datos.nombre && datos.correo && datos.role && datos.pais) getUsuariosNombreRolEmailPais(datos.nombre, datos.role, datos.correo, datos.pais, res, next)
+  else if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.role, datos.correo, res, next)
   else if (datos.nombre && datos.pais && datos.role) getUsuariosNombrePaisRol(datos.nombre, datos.pais, datos.role, res, next)
   else if (datos.pais && datos.correo && datos.role) getUsuariosPaisRolEmail(datos.pais, datos.role, datos.correo, res, next)
-  else if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.correo, datos.role, res, next)
   else if (datos.correo && datos.role) getUsuariosRolEmail(datos.role, datos.correo, res, next)
   else if (datos.nombre && datos.role) getUsuariosNombreRol(datos.nombre, datos.role, res, next)
   else if (datos.pais && datos.role) getUsuariosPaisRol(datos.pais, datos.role, res, next)
@@ -405,6 +404,23 @@ getUsuariosNombreRolEmail = async function (nombre, role, correo, res, next) {
       where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role, email: { [Op.iLike]: '%' + correo + '%' } },
       attributes: { exclude: ['password', 'foto'] }, include:[{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }]
+    })
+      .then(user => {
+        res.json(user)
+      })
+      .catch(err => res.status(419).send({ message: err.message }))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getUsuariosNombreRolEmailPais = async function (nombre, role, correo, pai, res, next) {
+  try {
+    await user.findAll({
+      where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role, email: { [Op.iLike]: '%' + correo + '%' } },
+      attributes: { exclude: ['password', 'foto'] }, include:[{
+        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}},  attributes: ['nombre']
       }]
     })
       .then(user => {
