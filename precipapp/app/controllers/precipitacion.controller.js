@@ -1037,7 +1037,7 @@ getDatosGraficos = async function (req, res, next) {
 exports.getFiltroGrafico = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.estacion && datos.fechaInicio && datos.fechaFin) getDatosGraficos(req, res, next)
+  if (datos.estacion && datos.fechaInicio && datos.fechaFin) getPrecipitacionesEstacionFechaGrafico(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
   else if (datos.fechaInicio && datos.fechaFin) getPrecipitacionesFechaGrafico(datos.fechaInicio, datos.fechaFin, res, next)
   else if (datos.estacion) getPrecipitacionesEstacionGrafico(datos.estacion, res, next)
   else getPrecipitacionesGrafico(req, res, next)
@@ -1096,12 +1096,15 @@ getPrecipitacionesEstacionGrafico = async function (nombreEstacion, res, next) {
         model: observadores, required: true, where: { state: 'A' }, attributes: [], include: [{
           model: usuarios, required: true, where: { state: 'A' }, attributes: []
         }, {
-          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombreEstacion + '%' } }, { codigo: { [Op.iLike]: '%' + nombreEstacion + '%' } }], state: 'A' }, attributes: []
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: nombreEstacion }, { codigo: nombreEstacion }], state: 'A' }, attributes: []
         }]
       }]
     })
       .then(precipitaciones => {
-        res.json(precipitaciones)
+        if (!precipitaciones[0]) {
+          res.status(418).send({message: 'No existen datos'})
+        }
+        else res.json(precipitaciones)
       })
       .catch(err => res.json(err.message))
   } catch (error) {
@@ -1149,12 +1152,15 @@ getPrecipitacionesEstacionFechaGrafico = async function (nombreEstacion, fechaIn
         model: observadores, required: true, where: { state: 'A' }, attributes: [], include: [{
           model: usuarios, required: true, where: { state: 'A' }
         }, {
-          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombreEstacion + '%' } }, { codigo: { [Op.iLike]: '%' + nombreEstacion + '%' } }], state: 'A' }, attributes: []
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: nombreEstacion }, { codigo: nombreEstacion }], state: 'A' }, attributes: []
         }]
       }]
     })
       .then(precipitaciones => {
-        res.json(precipitaciones)
+        if (!precipitaciones[0]) {
+          res.status(418).send({message: 'No existen datos'})
+        }
+        else res.json(precipitaciones)
       })
       .catch(err => res.json(err.message))
   } catch (error) {
