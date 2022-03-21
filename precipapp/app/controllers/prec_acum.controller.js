@@ -90,14 +90,15 @@ exports.getFiltro = async function (req, res, next) {
   var fF
   if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
   if (!datos.fechaFin) fF = new Date(Date.now() + 82800000)
-  else fF = datos.fechaFin
+  else fF = new Date(Date.parse(datos.fechaFin) + 82800000)
   var role = getUserRole(req)
   var options
   console.log(fI)
   console.log(fF)
   if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      //where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -111,7 +112,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -127,7 +128,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.pais && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -141,7 +142,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -157,7 +158,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && datos.pais && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -171,7 +172,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -189,7 +190,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && datos.estacion && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -203,7 +204,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -219,7 +220,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && datos.estacion && datos.codigo && datos.pais) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -233,7 +234,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -249,7 +250,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -261,7 +262,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -391,7 +392,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.pais && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -405,7 +406,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -422,7 +423,7 @@ exports.getFiltro = async function (req, res, next) {
   else if (datos.codigo && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
     console.log('e')
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -436,7 +437,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -452,7 +453,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -466,7 +467,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -482,7 +483,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.codigo && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -494,7 +495,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -508,7 +509,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -520,7 +521,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -534,7 +535,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -546,7 +547,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -560,7 +561,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.observador && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -572,7 +573,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -586,7 +587,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -598,7 +599,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -612,29 +613,29 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, where: { state: 'A' }, include: [{
           model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
-          model: estaciones, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
-            model: divisiones, required: true, where: {idPais: parseInt(datos.pais)}, state: 'A', attributes: [] 
+          model: estaciones, required: true, where: { nombre: datos.estacion, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: {state: 'A'}, attributes: [] 
           }]
         }]
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
           model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
         }, {
-          model: estaciones, required: true, attributes: ['id', 'nombre', 'codigo'], include: [{
-            model: divisiones, required: true, where: {idPais: parseInt(datos.pais)}, state: 'A', attributes: [] 
+          model: estaciones, required: true, where: { nombre: datos.estacion}, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: {state: 'A'}, attributes: [] 
           }]
         }]
       }]
@@ -642,7 +643,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.pais && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -656,7 +657,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -834,7 +835,7 @@ exports.getFiltro = async function (req, res, next) {
   }
   else if (datos.fechaInicio || datos.fechaFin) {
     if (role == 'observer ') options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] }, state: "A" },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{
@@ -846,7 +847,7 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { fecha_inicio: { [Op.between]: [fI, fF] } },
+      where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
       attributes: { exclude: ['state'] },
       required: true,
       include: [{

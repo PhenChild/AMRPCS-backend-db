@@ -237,7 +237,7 @@ exports.disablePais = async function (req, res, next) {
           }
         }
       }
-    }, {transaction: t})
+    })
     res.status(200).send({ message: 'Succesfully disable' })
   } catch (error) {
     console.log(error)

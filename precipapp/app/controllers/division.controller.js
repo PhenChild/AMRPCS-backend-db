@@ -562,7 +562,7 @@ exports.disableDivision = async function (req, res, next) {
         state: 'I',
         audDeletedAt: Date.now()
       }, {
-        where: { idPais: parseInt(req.body.id) }
+        where: { id: parseInt(req.body.id) }
       })
       let nivel = parseInt(req.body.nivel)
 
@@ -594,7 +594,7 @@ exports.disableDivision = async function (req, res, next) {
         }, {
           where: { idPadre: parseInt(req.body.id) }
         })
-        var d = divisiones.findAll({
+        var d = await divisiones.findAll({
           where: { idPadre: parseInt(req.body.id) }
         })
         for (var divi of d) {
@@ -626,7 +626,7 @@ exports.disableDivision = async function (req, res, next) {
         }, {
           where: { idPadre: parseInt(req.body.id) }
         })
-        var d = divisiones.findAll({
+        var d = await divisiones.findAll({
           where: { idPadre: parseInt(req.body.id) }
         })
         for (var divis of d) {
@@ -636,7 +636,7 @@ exports.disableDivision = async function (req, res, next) {
           }, {
             where: { idPadre: divis.id }
           })
-          var d = divisiones.findAll({
+          var d = await divisiones.findAll({
             where: { idPadre: divis.id }
           })
           for (var divi of d) {
@@ -670,6 +670,7 @@ exports.disableDivision = async function (req, res, next) {
 
 exports.activateDivision = async function (req, res, next) {
   try {
+    console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
 
       var p = await pais.findOne({
@@ -677,7 +678,14 @@ exports.activateDivision = async function (req, res, next) {
           id: parseInt(req.body.idPais)
         }
       })
-      if (p) {
+
+      var d = await divisiones.findOne({
+        where:{
+          id: parseInt(req.body.idPadre),
+          state: 'A'
+        }
+      })
+      if (p && d) {
         await divisiones.update({
           state: 'A'
         }, {

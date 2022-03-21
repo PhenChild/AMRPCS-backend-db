@@ -56,14 +56,14 @@ getAll = async function (req, res, next) {
   if (role == 'observer') {
     options = {
       where: { state: "A", role: role },
-      attributes: ['nombre', 'apellido', 'role'], include:[{
+      attributes: ['nombre', 'apellido', 'role'], include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }]
     }
   }
   else {
     options = {
-      attributes: { exclude: ['password', 'foto'] }, include:[{
+      attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }]
     }
@@ -84,11 +84,13 @@ exports.getFiltro = async function (req, res, next) {
   else if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.role, datos.correo, res, next)
   else if (datos.nombre && datos.pais && datos.role) getUsuariosNombrePaisRol(datos.nombre, datos.pais, datos.role, res, next)
   else if (datos.pais && datos.correo && datos.role) getUsuariosPaisRolEmail(datos.pais, datos.role, datos.correo, res, next)
+  else if (datos.nombre && datos.correo && datos.pais) getUsuariosNombreCorreoPais(datos.nombre, datos.correo, datos.pais, res, next)
   else if (datos.correo && datos.role) getUsuariosRolEmail(datos.role, datos.correo, res, next)
   else if (datos.nombre && datos.role) getUsuariosNombreRol(datos.nombre, datos.role, res, next)
   else if (datos.pais && datos.role) getUsuariosPaisRol(datos.pais, datos.role, res, next)
   else if (datos.nombre && datos.correo) getUsuariosNombreEmail(datos.nombre, datos.correo, req, res, next)
   else if (datos.nombre && datos.pais) getUsuariosNombrePais(datos.nombre, datos.pais, req, res, next)
+  else if (datos.correo && datos.pais) getUsuariosCorreoPais(datos.correo, datos.pais, req, res, next)
   else if (datos.nombre) getUsuariosNombre(datos.nombre, req, res, next)
   else if (datos.correo) getUsuariosEmail(datos.correo, req, res, next)
   else if (datos.role) getUsuariosRol(datos.role, req, res, next)
@@ -101,8 +103,8 @@ getUsuariosPaisRol = async function (pai, role, res, next) {
   try {
     await user.findAll({
       where: { role: role },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
-        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+      attributes: { exclude: ['password', 'foto'] }, include: [{
+        model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }]
     })
       .then(user => {
@@ -119,10 +121,28 @@ getUsuariosNombrePaisRol = async function (nombre, pai, role, res, next) {
   try {
     await user.findAll({
       where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' } },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
-        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+      attributes: { exclude: ['password', 'foto'] }, include: [{
+        model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }]
     })
+      .then(user => {
+        res.json(user)
+      })
+      .catch(err => res.status(419).send({ message: err.message }))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getUsuariosNombreCorreoPais = async function (nombre, correo, pai, res, next) {
+  try {
+    await user.findAll({
+      where: {
+        nombre: { [Op.iLike]: '%' + nombre + '%'}, email: { [Op.iLike]: '%' + correo + '%' } },
+        attributes: { exclude: ['password', 'foto'] }, include: [{
+          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }]
+      })
       .then(user => {
         res.json(user)
       })
@@ -136,8 +156,8 @@ getUsuariosPaisRolEmail = async function (pai, role, correo, res, next) {
   try {
     await user.findAll({
       where: { role: role, email: { [Op.iLike]: '%' + correo + '%' } },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
-        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+      attributes: { exclude: ['password', 'foto'] }, include: [{
+        model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }]
     })
       .then(user => {
@@ -163,8 +183,8 @@ getUsuariosNombrePais = async function (nombre, pai, req, res, next) {
     if (role == 'admin') {
       await user.findAll({
         where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }] },
-        attributes: { exclude: ['password', 'foto'] }, include:[{
-          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        attributes: { exclude: ['password', 'foto'] }, include: [{
+          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
         }]
       })
         .then(user => {
@@ -174,9 +194,49 @@ getUsuariosNombrePais = async function (nombre, pai, req, res, next) {
     }
     else {
       await user.findAll({
-        where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' }, email: { [Op.iLike]: '%' + correo + '%' }, state: "A" },
-        attributes: ['nombre', 'apellido', 'role'], include:[{
-          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' }, state: "A" },
+        attributes: ['nombre', 'apellido', 'role'], include: [{
+          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }]
+      })
+        .then(user => {
+          res.json(user)
+        })
+        .catch(err => res.status(419).send({ message: err.message }))
+    }
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+getUsuariosCorreoPais = async function (email, pai, req, res, next) {
+  var role = 'observer'
+  if (req.userId >= 0) {
+    var u = await user.findOne({
+      where: { id: req.userId, state: "A" },
+      attributes: ['role']
+    })
+    console.log(u)
+    if (u.role == 'admin') role = 'admin'
+  }
+  try {
+    if (role == 'admin') {
+      await user.findAll({
+        where: { email: { [Op.iLike]: '%' + email + '%' } },
+        attributes: { exclude: ['password', 'foto'] }, include: [{
+          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }]
+      })
+        .then(user => {
+          res.json(user)
+        })
+        .catch(err => res.status(419).send({ message: err.message }))
+    }
+    else {
+      await user.findAll({
+        where: { role: role, email: { [Op.iLike]: '%' + email + '%' }, state: "A" },
+        attributes: ['nombre', 'apellido', 'role'], include: [{
+          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
         }]
       })
         .then(user => {
@@ -201,8 +261,8 @@ getUsuariosPais = async function (pai, req, res, next) {
   try {
     if (role == 'admin') {
       await user.findAll({
-        attributes: { exclude: ['password', 'foto'] }, include:[{
-          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        attributes: { exclude: ['password', 'foto'] }, include: [{
+          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
         }]
       })
         .then(user => {
@@ -213,8 +273,8 @@ getUsuariosPais = async function (pai, req, res, next) {
     else {
       await user.findAll({
         where: { role: role, state: "A" },
-        attributes: ['nombre', 'apellido', 'role'], include:[{
-          model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}}, attributes: ['nombre']
+        attributes: ['nombre', 'apellido', 'role'], include: [{
+          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
         }]
       })
         .then(user => {
@@ -240,7 +300,7 @@ getUsuariosNombre = async function (nombre, req, res, next) {
     if (role == 'admin') {
       await user.findAll({
         where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }] },
-        attributes: { exclude: ['password', 'foto'] }, include:[{
+        attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }]
       })
@@ -252,7 +312,7 @@ getUsuariosNombre = async function (nombre, req, res, next) {
     else {
       await user.findAll({
         where: { role: role, [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], state: "A" },
-        attributes: ['nombre', 'apellido', 'role'], include:[{
+        attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }]
       })
@@ -270,7 +330,7 @@ getUsuariosRol = async function (role, req, res, next) {
   try {
     await user.findAll({
       where: { role: role },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
+      attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }]
     })
@@ -288,7 +348,7 @@ getUsuariosEmail = async function (correo, req, res, next) {
   if (req.userId >= 0) {
     var u = await user.findOne({
       where: { id: req.userId, state: "A" },
-      attributes: ['role'], include:[{
+      attributes: ['role'], include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }]
     })
@@ -298,7 +358,7 @@ getUsuariosEmail = async function (correo, req, res, next) {
     if (role == 'admin') {
       await user.findAll({
         where: { email: { [Op.iLike]: '%' + correo + '%' } },
-        attributes: { exclude: ['password', 'foto'] }, include:[{
+        attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }]
       })
@@ -310,7 +370,7 @@ getUsuariosEmail = async function (correo, req, res, next) {
     else {
       await user.findAll({
         where: { role: role, email: { [Op.iLike]: '%' + correo + '%' }, state: "A" },
-        attributes: ['nombre', 'apellido', 'role'], include:[{
+        attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }]
       })
@@ -328,7 +388,7 @@ getUsuariosNombreRol = async function (nombre, role, res, next) {
   try {
     await user.findAll({
       where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
+      attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }]
     })
@@ -355,7 +415,7 @@ getUsuariosNombreEmail = async function (nombre, correo, req, res, next) {
     if (role == 'admin') {
       await user.findAll({
         where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], email: { [Op.iLike]: '%' + correo + '%' } },
-        attributes: { exclude: ['password', 'foto'] }, include:[{
+        attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }]
       })
@@ -367,7 +427,7 @@ getUsuariosNombreEmail = async function (nombre, correo, req, res, next) {
     else {
       await user.findAll({
         where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' }, email: { [Op.iLike]: '%' + correo + '%' }, state: "A" },
-        attributes: ['nombre', 'apellido', 'role'], include:[{
+        attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }]
       })
@@ -385,7 +445,7 @@ getUsuariosRolEmail = async function (role, correo, res, next) {
   try {
     await user.findAll({
       where: { role: role, email: { [Op.iLike]: '%' + correo + '%' } },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
+      attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }]
     })
@@ -402,7 +462,7 @@ getUsuariosNombreRolEmail = async function (nombre, role, correo, res, next) {
   try {
     await user.findAll({
       where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role, email: { [Op.iLike]: '%' + correo + '%' } },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
+      attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }]
     })
@@ -419,8 +479,8 @@ getUsuariosNombreRolEmailPais = async function (nombre, role, correo, pai, res, 
   try {
     await user.findAll({
       where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role, email: { [Op.iLike]: '%' + correo + '%' } },
-      attributes: { exclude: ['password', 'foto'] }, include:[{
-        model: pais, as: 'Pais', required: true, where: {nombre: { [Op.iLike]: '%' + pai + '%'}},  attributes: ['nombre']
+      attributes: { exclude: ['password', 'foto'] }, include: [{
+        model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }]
     })
       .then(user => {
@@ -691,7 +751,7 @@ exports.getImage = async function (req, res, next) {
     })
       .then(user => {
         if (user.foto) res.json({ foto: user.foto.toString('base64') })
-        else res.json({ foto: '' } )
+        else res.json({ foto: '' })
       })
       .catch(err => res.status(419).send({ message: err.message }))
   } catch (error) {
