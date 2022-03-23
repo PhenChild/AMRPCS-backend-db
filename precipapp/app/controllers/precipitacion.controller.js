@@ -392,7 +392,7 @@ exports.getFiltro = async function (req, res, next) {
           model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { nombre: { [Op.iLike]: '%' + datos.estacion + '%' }, codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
-            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais), state: 'A' }, attributes: []
           }]
         }]
       }]
@@ -422,7 +422,7 @@ exports.getFiltro = async function (req, res, next) {
           model: usuarios, required: true, where: { state: 'A' }, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, state: 'A' }, attributes: ['id', 'nombre', 'codigo'], include: [{
-            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais), state: 'A' }, attributes: []
           }]
         }]
       }]
@@ -436,10 +436,9 @@ exports.getFiltro = async function (req, res, next) {
           model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: {
-            codigo: { [Op.iLike]: '%' + datos.codigo + '%' }, attributes: ['id', 'nombre', 'codigo'], include: [{
-              model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, state: 'A', attributes: []
+            codigo: { [Op.iLike]: '%' + datos.codigo + '%' }}, attributes: ['id', 'nombre', 'codigo'], include: [{
+              model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
             }]
-          }
         }]
       }]
     }
