@@ -436,9 +436,10 @@ exports.getFiltro = async function (req, res, next) {
           model: usuarios, required: true, attributes: ['id', 'nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: {
-            codigo: { [Op.iLike]: '%' + datos.codigo + '%' }}, attributes: ['id', 'nombre', 'codigo'], include: [{
-              model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
-            }]
+            codigo: { [Op.iLike]: '%' + datos.codigo + '%' }
+          }, attributes: ['id', 'nombre', 'codigo'], include: [{
+            model: divisiones, required: true, where: { idPais: parseInt(datos.pais) }, attributes: []
+          }]
         }]
       }]
     }
@@ -979,7 +980,7 @@ getDatosGraficos = async function (req, res, next) {
   var jsonArray = []
 
   var est = await estaciones.findAll({
-    where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombreEstacion + '%' } }, { codigo: { [Op.iLike]: '%' + nombreEstacion + '%' } }], state: 'A' },
+    where: { [Op.or]: [{ nombre:  nombreEstacion }, { codigo: nombreEstacion  }], state: 'A' },
     attributes: { exclude: ['foto'] }
   })
     .then(estacion => {
@@ -989,7 +990,30 @@ getDatosGraficos = async function (req, res, next) {
       }
     })
 
-  var datesPrec = await precipitaciones.findAll({
+var datesPrec
+  if (est) {
+    datesPrec = await precipitaciones.findAll({
+      where: { fecha: { [Op.between]: [fechaInicio, fechaFin] }, state: "A" },
+      order: [
+        ['fecha', 'ASC']
+      ],
+      required: true,
+      attributes: ['fecha', 'valor'],
+      include: [{
+        model: observadores, required: true, where: { state: 'A' }, attributes: [], include: [{
+          model: usuarios, required: true, where: { state: 'A' }
+        }, {
+          model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombreEstacion + '%' } }, { codigo: { [Op.iLike]: '%' + nombreEstacion + '%' } }], state: 'A' }, attributes: []
+        }]
+      }]
+    })
+    console.log(datesPrec)
+    if (!datesPrec[0]) {
+      datesPrec[0] = fechaFin
+    }
+   }
+   else 
+  datesPrec = await precipitaciones.findAll({
     where: { fecha: { [Op.between]: [fechaInicio, fechaFin] }, state: "A" },
     order: [
       ['fecha', 'ASC']
@@ -1036,9 +1060,8 @@ getDatosGraficos = async function (req, res, next) {
 exports.getFiltroGrafico = async function (req, res, next) {
   var datos = req.query
   console.log(req.query)
-  if (datos.estacion && datos.fechaInicio && datos.fechaFin) getPrecipitacionesEstacionFechaGrafico(datos.estacion, datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.fechaInicio && datos.fechaFin) getPrecipitacionesFechaGrafico(datos.fechaInicio, datos.fechaFin, res, next)
-  else if (datos.estacion) getPrecipitacionesEstacionGrafico(datos.estacion, res, next)
+  if (datos.estacion && datos.fechaInicio && datos.fechaFin) getDatosGraficos(req, res, next)
+  else if (datos.fechaInicio && datos.fechaFin) getDatosGraficos(datos.fechaInicio, datos.fechaFin, res, next)
   else getPrecipitacionesGrafico(req, res, next)
 
 }
@@ -1101,7 +1124,7 @@ getPrecipitacionesEstacionGrafico = async function (nombreEstacion, res, next) {
     })
       .then(precipitaciones => {
         if (!precipitaciones[0]) {
-          res.status(418).send({message: 'No existen datos'})
+          res.status(418).send({ message: 'No existen datos' })
         }
         else res.json(precipitaciones)
       })
@@ -1157,7 +1180,7 @@ getPrecipitacionesEstacionFechaGrafico = async function (nombreEstacion, fechaIn
     })
       .then(precipitaciones => {
         if (!precipitaciones[0]) {
-          res.status(418).send({message: 'No existen datos'})
+          res.status(418).send({ message: 'No existen datos' })
         }
         else res.json(precipitaciones)
       })
