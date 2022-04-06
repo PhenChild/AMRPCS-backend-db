@@ -550,7 +550,8 @@ exports.updateUser = async function (req, res, next) {
         email: req.body.email,
         nombre: req.body.nombre,
         apellido: req.body.apellido,
-        telefono: req.body.telefono
+        telefono: req.body.telefono,
+        genero: req.body.genero
       }, {
         where: {
           id: parseInt(req.userId)
@@ -574,7 +575,8 @@ exports.updateSelfUser = async function (req, res, next) {
           email: req.body.email,
           nombre: req.body.nombre,
           apellido: req.body.apellido,
-          telefono: req.body.telefono
+          telefono: req.body.telefono,
+          genero: req.body.genero
         }, {
           where: {
             id: parseInt(req.userId)
@@ -683,6 +685,7 @@ exports.updateUsers = async function (req, res, next) {
         nombre: req.body.usuario.nombre,
         apellido: req.body.usuario.apellido,
         telefono: req.body.usuario.telefono,
+        genero: req.body.usuario.genero,
         idPais: parseInt(req.body.usuario.idPais)
       }, {
         where: {

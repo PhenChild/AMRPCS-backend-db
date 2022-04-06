@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       User.belongsTo(models.Pais, { foreignKey: 'idPais', as: "Pais"})
+      User.belongsTo(models.Ocupacion, { foreignKey: 'idOcupacion'})
     }
   };
   User.init({
@@ -20,11 +21,17 @@ module.exports = (sequelize, DataTypes) => {
     nombre: DataTypes.STRING,
     apellido: DataTypes.STRING,
     telefono: DataTypes.STRING,
+    genero: DataTypes.STRING,
     foto: DataTypes.BLOB,
     idPais: {
       field: 'idPais',
       type: DataTypes.INTEGER,
     },
+    /*idOcupacion: {
+      field: 'idOcupacion',
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },*/
     state: {
       type: DataTypes.CHAR,
       defaultValue: 'A'

@@ -15,6 +15,7 @@ const acumRouter = require('./app/routes/prec_acum')
 const precipitacionRouter = require('./app/routes/precipitacion')
 const cuestionarioRouter = require('./app/routes/cuestionario')
 const fotoRouter = require('./app/routes/foto')
+ocupacionRouter = require('./app/routes/ocupacion')
 
 const app = express()
 
@@ -48,6 +49,7 @@ app.use('/api/acumulado', acumRouter)
 app.use('/api/precipitacion', precipitacionRouter)
 app.use('/api/cuestionario', cuestionarioRouter)
 app.use('/api/foto', fotoRouter)
+app.use('/api/ocupacion', ocupacionRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
