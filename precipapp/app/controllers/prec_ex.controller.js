@@ -1,12 +1,22 @@
 const precipitacionesEx = require('../models').PrecEx
 const Sequelize = require('../models')
+var nodemailer = require('nodemailer');
 const Op = require('sequelize').Op
+
+var transporter = nodemailer.createTransport({
+    service: 'outlook',
+    auth: {
+        user: 'micxarce@espol.edu.ec',
+        pass: 'Garchomp_00'
+    }
+});
 
 exports.newExtrema = async function (req, res, next) {
     try {
         console.log(req.body)
+        console.log(req.obsId)
         await Sequelize.sequelize.transaction(async (t) => {
-            await acumulados.create({
+            await precipitacionesEx.create({
                 fechaInicio: Date.parse(req.body.fechaInicio),
                 fechaFin: Date.parse(req.body.fechaFin),
                 valor: parseFloat(req.body.valor),
@@ -14,8 +24,26 @@ exports.newExtrema = async function (req, res, next) {
                 exactitud: req.body.exactitud,
                 inundacion: req.body.inundacion,
                 eventos: req.body.eventos,
+                granizo: req.body.granizo,
+                deslizamiento: req.body.deslizamiento,
                 idObservador: parseInt(req.obsId)
             }, { transaction: t }).then(acum => {
+                if (req.body.notificacion) {
+                    var mailOptions = {
+                        from: 'micxarce@espol.edu.ec',
+                        to: 'micharsie@yahoo.com',
+                        subject: 'Sending Email using Node.js',
+                        text: 'That was easy!'
+                    };
+
+                    transporter.sendMail(mailOptions, function (error, info) {
+                        if (error) {
+                            console.log(error);
+                        } else {
+                            console.log('Email sent: ' + info.response);
+                        }
+                    });
+                }
                 res.status(200).send({ message: 'Succesfully created' })
             })
         })

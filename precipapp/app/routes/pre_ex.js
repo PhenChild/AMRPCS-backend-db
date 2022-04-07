@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const { authJwt } = require('../middleware')
+const { obsEstacion } = require('../middleware')
 const precex = require('../controllers/prec_ex.controller')
 
 router.get('/get',
@@ -8,7 +9,7 @@ router.get('/get',
     precex.getAll)
 
 router.post('/new',
-    [authJwt.verifyToken, authJwt.isAdmin],
+    [authJwt.verifyToken, obsEstacion.obsByEst],
     precex.newExtrema)
 
 router.post('/update',

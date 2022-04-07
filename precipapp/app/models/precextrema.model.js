@@ -20,6 +20,8 @@ module.exports = (sequelize, DataTypes) => {
         exactitud: {field: 'exactitud_temporal', type: DataTypes.STRING},
         inundacion: DataTypes.STRING,
         eventos: DataTypes.STRING,
+        granizo: DataTypes.BOOLEAN,
+        deslizamiento: DataTypes.BOOLEAN,
         comentario: DataTypes.STRING(300),
         state: {
             type: DataTypes.CHAR,

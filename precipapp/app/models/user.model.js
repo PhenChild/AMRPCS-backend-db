@@ -27,11 +27,10 @@ module.exports = (sequelize, DataTypes) => {
       field: 'idPais',
       type: DataTypes.INTEGER,
     },
-    /*idOcupacion: {
+    idOcupacion: {
       field: 'idOcupacion',
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },*/
+      type: DataTypes.INTEGER
+    },
     state: {
       type: DataTypes.CHAR,
       defaultValue: 'A'
