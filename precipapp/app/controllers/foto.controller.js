@@ -16,9 +16,23 @@ exports.getFotos = async function (req, res, next) {
   }
 }
 
+exports.getFotosCuestionario = async function (req, res, next) {
+  try {
+    await fotos.findAll({
+      where: { idCuestionario: parseInt(req.body.id), state: "A" },
+      attributes: { exclude: ['state'] }
+    })
+      .then(fotos => {
+        res.json(fotos)
+      })
+      .catch(err => res.json(err.message))
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
 exports.createFoto = async function (req, res, next) {
-    try{
-    console.log(req.files)
+  try {
     await fotos.create({
       idCuestionario: parseInt(req.body.idCuestionario),
       foto: Buffer.from(req.file.buffer)
@@ -27,23 +41,38 @@ exports.createFoto = async function (req, res, next) {
     }).catch(err => res.status(419).send({ message: err.message }))
   } catch (error) {
     res.status(400).send({ message: error.message })
-    }
   }
+}
 
-  exports.disableFoto = async function (req, res, next) {
-    try {
+exports.updateFoto = async function (req, res, next) {
+  try {
       await Sequelize.sequelize.transaction(async (t) => {
-        const f = await fotos.update({
-          state: "I",
-          audDeletedAt: Date.now()
-        }, {
-          where: { id: parseInt(req.body.id, 10) }
-        }, { transaction: t })
-        return f
+          const c = await fotos.update({
+            foto: Buffer.from(req.file.buffer)
+          }, {
+              where: { id: parseInt(req.body.id, 10) }
+          }, { transaction: t })
+          return p
       })
-      res.status(200).send({ message: 'Succesfully disable' })
-    } catch (error) {
+      res.status(200).send({ message: 'Succesfully Activate' })
+  } catch (error) {
       res.status(400).send({ message: error.message })
-    }
   }
-  
+}
+
+exports.disableFoto = async function (req, res, next) {
+  try {
+    await Sequelize.sequelize.transaction(async (t) => {
+      const f = await fotos.update({
+        state: "I",
+        audDeletedAt: Date.now()
+      }, {
+        where: { id: parseInt(req.body.id, 10) }
+      }, { transaction: t })
+      return f
+    })
+    res.status(200).send({ message: 'Succesfully disable' })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}

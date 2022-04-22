@@ -8,6 +8,10 @@ const upload = multer({ storage: multer.memoryStorage() })
 router.get('/getAll',
     foto.getFotos)
 
+router.post('/getCuestionarioFotos',
+    [authJwt.verifyToken],
+    foto.getFotosCuestionario)
+
 router.post('/new',
     upload.array('fotos', 4),
     foto.createFoto)

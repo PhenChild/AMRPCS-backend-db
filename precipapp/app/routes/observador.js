@@ -1,4 +1,5 @@
 const { authJwt } = require('../middleware')
+const { obsEstacion } = require('../middleware')
 const express = require('express')
 const router = express.Router()
 const observador = require('../controllers/observador.controller')
@@ -27,7 +28,7 @@ router.patch(
 router.post('/getObsEstacion',
   observador.getObservadores)
 
-  router.post('/getUserEstacion',
+router.post('/getUserEstacion',
   [authJwt.verifyToken],
   observador.getUserEstaciones)
 
@@ -42,6 +43,9 @@ router.post(
   [authJwt.verifyToken, authJwt.isAdmin],
   observador.createObservador)
 
+router.post('/myReports',
+  [authJwt.verifyToken, obsEstacion.obsByEst],
+  observador.getMyReports)
 
 /*
 router.get(

@@ -13,7 +13,7 @@ const Op = require('sequelize').Op
 
 exports.newAcumulados = async function (req, res, next) {
   try {
-    console.log(req.body)
+    
     await Sequelize.sequelize.transaction(async (t) => {
       await acumulados.create({
         fechaInicio: Date.parse(req.body.fechaInicio),
@@ -53,7 +53,7 @@ getAcumulados = async function (options, req, res, next) {
         res.json(acumulados)
       })
       .catch(err => {
-        console.log(err)
+        
         res.json(err.message)
       })
   } catch (error) {
@@ -66,7 +66,7 @@ module.exports.getAcumulados = getAcumulados
 /*
 exports.updatePais = async function (req, res, next) {
   try {
-    console.log(req.body)
+    
     await Sequelize.sequelize.transaction(async (t) => {
       const p = await paises.update({
         nombre: req.body.nombre,
@@ -85,7 +85,7 @@ exports.updatePais = async function (req, res, next) {
 */
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
-  console.log(req.query)
+  
   var fI = datos.fechaInicio
   var fF
   if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
@@ -93,8 +93,8 @@ exports.getFiltro = async function (req, res, next) {
   else fF = new Date(Date.parse(datos.fechaFin) + 82800000)
   var role = getUserRole(req)
   var options
-  console.log(fI)
-  console.log(fF)
+  
+  
   if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer ') options = {
       //where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
@@ -113,7 +113,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -143,7 +142,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -173,7 +171,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -205,7 +202,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -235,7 +231,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -263,7 +258,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -289,7 +283,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: {},
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -317,7 +310,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: {},
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -347,7 +339,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: {},
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -377,7 +368,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: {},
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -407,7 +397,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -421,7 +410,6 @@ exports.getFiltro = async function (req, res, next) {
     }
   }
   else if (datos.codigo && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
-    console.log('e')
     if (role == 'observer ') options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF }, state: "A" },
       attributes: { exclude: ['state'] },
@@ -438,7 +426,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -468,7 +455,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -496,7 +482,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -522,7 +507,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -548,7 +532,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -574,7 +557,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -600,7 +582,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -628,7 +609,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -658,7 +638,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -687,7 +666,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -716,7 +694,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -745,7 +722,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -772,7 +748,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -797,7 +772,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -822,7 +796,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -848,7 +821,6 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       where: { fecha_inicio: { [Op.gte]: fI }, fecha_fin: { [Op.lte]: fF } },
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -873,7 +845,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -898,7 +869,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -923,7 +893,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -950,7 +919,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -977,7 +945,6 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      attributes: { exclude: ['state'] },
       required: true,
       include: [{
         model: observadores, required: true, include: [{
@@ -993,8 +960,27 @@ exports.getFiltro = async function (req, res, next) {
 
 exports.updateValor = async function (req, res, next) {
   try {
-    console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
+      var role = await getUserRole(req)
+      console.log(role)
+      console.log(req.userId)
+      if (role == "observer") {
+        var obs = await observadores.findAll({
+          attributes: ["id"],
+          where: {idUser: req.userId}
+        })
+        var hasRecord = false;
+        if (obs[0]) {
+          for (var o of obs) {
+            if (parseInt(req.body.idObservador) == o.id)
+              hasRecord = true;
+          }
+        }
+        if (!hasRecord) {
+          res.status(419).send({ message: "No pertenece" })
+          return
+        }
+      }
       const prec = await acumulados.update({
         valor: parseFloat(req.body.valor),
         comentario: req.body.comentario
@@ -1012,7 +998,6 @@ exports.updateValor = async function (req, res, next) {
 
 exports.disableAcumulados = async function (req, res, next) {
   try {
-    console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const a = await acumulados.update({
         state: "I",
@@ -1020,9 +1005,25 @@ exports.disableAcumulados = async function (req, res, next) {
       }, {
         where: { id: parseInt(req.body.id, 10) }
       }, { transaction: t })
-      return a
     })
     res.status(200).send({ message: 'Succesfully disable' })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+exports.activateAcumulados = async function (req, res, next) {
+  try {
+    
+    await Sequelize.sequelize.transaction(async (t) => {
+      const a = await acumulados.update({
+        state: "A"
+      }, {
+        where: { id: parseInt(req.body.id, 10) }
+      }, { transaction: t })
+      return a
+    })
+    res.status(200).send({ message: 'Succesfully activate' })
   } catch (error) {
     res.status(400).send({ message: error.message })
   }

@@ -2,6 +2,7 @@ const Sequelize = require('../models')
 const pais = require('../models').Pais
 const division = require('../models').Division
 const observadores = require('../models').Observador
+const usuarios = require('../models').User
 const precipitaciones = require('../models').Precipitacion
 const acumulados = require('../models').PrecAcum
 const cuestionarios = require('../models').Cuestionario
@@ -27,8 +28,6 @@ getUserRole = async function (req) {
 getEstaciones = async function (options, role, req, res, next) {
   try {
     var u
-    console.log('Rol: ')
-    console.log(role)
     if (role == 'observer') {
       u = await observadores.findAll({
         where: { idUser: req.userId, state: "A" },
@@ -95,7 +94,6 @@ getEstaciones = async function (options, role, req, res, next) {
         jsonEstacion.audUpdatedAt = ''
       }
       if (role == 'observer') {
-        console.log('estoy valiendo edwin')
         for (var o of u) {
           if (o.idEstacion == e.id) jsonEstacion.itsMine = true
         }
@@ -106,7 +104,6 @@ getEstaciones = async function (options, role, req, res, next) {
     res.json(json)
 
   } catch (error) {
-    console.log(error)
     res.status(400).send({ message: error.message })
   }
 }
@@ -130,7 +127,6 @@ getEstacionesSinDivision = async function (req, res, next) {
 
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
-  console.log(req.query)
   var role = await getUserRole(req)
   var options
   if (datos.nombre && datos.nombrePais && datos.codigo) {
@@ -312,7 +308,6 @@ exports.getFiltro = async function (req, res, next) {
 
 exports.getFiltroSinDivision = async function (req, res, next) {
   var datos = req.query
-  console.log(req.query)
   if (datos.nombre) getEstacionesNombreSinDivision(datos.nombre, res, next)
   else if (datos.codigo) getEstacionesCodigoSinDivision(datos.codigo, res, next)
   else if (datos.nombre && datos.codigo) getEstacionesCodigoNombre(datos.codigo, datos.nombre, res, next)
@@ -383,12 +378,10 @@ getEstacionesNombreCodigoPais = async function (nombre, codigo, nombrePais, res,
 
     var json = []
     for (var e of estaciones) {
-      console.log(e.idUbicacion)
       var d3 = await division.findOne({
         where: { id: e.idUbicacion, state: 'A' },
         required: true
       })
-      console.log(d3.idPadre)
 
       var d2 = await division.findOne({
         where: { id: d3.idPadre, state: 'A' },
@@ -433,7 +426,6 @@ exports.createEstacion = async function (req, res, next) {
       return
     }
 
-    console.log(req.body)
     const point = { type: 'Point', coordinates: [parseFloat(req.body.latitud), parseFloat(req.body.longitud)] }
     await estacion.create({
       codigo: req.body.codigo,
@@ -472,8 +464,6 @@ exports.adminGetImage = async function (req, res, next) {
 exports.updateEstacion = async function (req, res, next) {
   try {
     const point = { type: 'Point', coordinates: [req.body.latitud, req.body.longitud] }
-    console.log("edwin")
-    console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const est = await estacion.update({
         nombre: req.body.nombre,
@@ -538,7 +528,6 @@ exports.updateEstacionImage = async function (req, res, next) {
     })
     res.status(200).send({ message: 'Succesfully updated' })
   } catch (error) {
-    console.log(error.message)
     res.status(419).send({ message: error.message })
   }
 }
@@ -571,8 +560,6 @@ exports.disableEstacion = async function (req, res, next) {
 exports.getTipoRegistros = async function (req, res, next) {
   try {
     var jsonArr = []
-    console.log("algo")
-    console.log(req.body)
     var prec = await precipitaciones.findAll({
       attributes: ['id'],
       required: true,
@@ -580,7 +567,6 @@ exports.getTipoRegistros = async function (req, res, next) {
         model: observadores, required: true, where: { idEstacion: req.body.id }
       }]
     })
-    console.log(prec)
     if (prec[0]) {
       let json = {
         nombre: "Precipitación Diaria"
@@ -595,7 +581,6 @@ exports.getTipoRegistros = async function (req, res, next) {
         model: observadores, required: true, where: { idEstacion: req.body.id }
       }]
     })
-    console.log(acum)
     if (acum[0]) {
       let json = {
         nombre: "Precipitación Acumulada"
@@ -609,7 +594,6 @@ exports.getTipoRegistros = async function (req, res, next) {
         model: observadores, required: true, where: { idEstacion: req.body.id }
       }]
     })
-    console.log(cues)
 
     if (cues[0]) {
       let json = {
@@ -618,6 +602,42 @@ exports.getTipoRegistros = async function (req, res, next) {
       jsonArr.push(json)
     }
 
+    res.json(jsonArr)
+
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
+
+exports.getUsuariosPorEstaciones = async function (req, res, next) {
+  try {
+    var jsonArr = []
+    for (var est of req.body.estaciones) {
+      arr = []
+      var e = await estacion.findOne({
+        attributes: { exclude: ['foto', 'audCreatedAt', 'audDeletedAt', 'audUpdatedAt', 'idUbicacion', 'id'] },
+        where: {id: est.id},
+        required: true
+      })
+      console.log(e)
+      arr.push(e)
+      var obs = await observadores.findAll({
+        attributes: [],
+        where: {idEstacion: est.id},
+        required: true,
+        include: [{
+          model: usuarios, required: true, attributes: ["nombre", "apellido"] 
+        }]
+      })
+      var usersArr = []
+      for (var o of obs) {
+        json = {nombre: o.User.nombre + ' ' + o.User.apellido}
+        usersArr.push(json)
+      }
+      arr.push(usersArr)
+      jsonArr.push(arr)
+    }
     res.json(jsonArr)
 
   } catch (error) {
@@ -658,7 +678,6 @@ exports.activateEstacion = async function (req, res, next) {
           id: req.body.idUbicacion, state: 'A'
         }
       })
-      console.log(ubicacion)
       if (ubicacion) {
         await estacion.update({
           state: 'A'

@@ -14,8 +14,7 @@ module.exports = (sequelize, DataTypes) => {
     }
   }
   Ocupacion.init({
-    trabajaActual: DataTypes.BOOLEAN,
-    ocupacionActual: DataTypes.STRING,
+    descripcion: DataTypes.STRING,
     state: {
         type: DataTypes.CHAR,
         defaultValue: 'A'

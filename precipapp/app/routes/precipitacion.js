@@ -24,12 +24,16 @@ router.get('/getAll/filtro',
 router.get('/getAll/filtroGrafico',
   precipitacion.getFiltroGrafico)
 
-router.post('/disable',
+router.post('/delete',
   [authJwt.verifyToken, authJwt.isAdmin],
   precipitacion.disablePrecipitaciones)
 
-router.post('/update',
+router.post('/activate',
   [authJwt.verifyToken, authJwt.isAdmin],
+  precipitacion.activatePrecipitaciones)
+
+router.post('/update',
+  [authJwt.verifyToken],
   precipitacion.updateValor)
 
 module.exports = router

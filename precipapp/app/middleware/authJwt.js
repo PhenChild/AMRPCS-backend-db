@@ -88,7 +88,6 @@ isObserverByEmail = (req, res, next) => {
         state: 'A'
       }
     }).then(user => {
-      // console.log(user);
       if (user) {
         req.userId = user.id
         next()
@@ -132,7 +131,6 @@ isAdmin = (req, res, next) => {
 // eslint-disable-next-line no-undef
 isAdminByEmail = (req, res, next) => {
   try {
-    console.log("Aquí ${req.body}")
     const e = req.body.email
     User.findOne({
       where: {

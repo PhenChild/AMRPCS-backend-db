@@ -33,6 +33,11 @@ router.post(
   estacion.getTipoRegistros)
 
 router.post(
+  '/getUsuariosPorEstaciones',
+  [authJwt.verifyUser],
+  estacion.getUsuariosPorEstaciones)
+
+router.post(
   '/getHermanoEstaciones',
   [authJwt.verifyToken, authJwt.isAdmin],
   estacion.getHermanoDivisiones)

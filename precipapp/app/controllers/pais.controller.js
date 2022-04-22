@@ -48,7 +48,7 @@ module.exports.getPaises = getPaises
 
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
-  console.log(req.query)
+  
   var role = getUserRole(req)
   var options
 
@@ -135,7 +135,7 @@ getPaisesNombreSiglas = async function (nombre, siglas, res, next) {
 
 exports.newPais = async function (req, res, next) {
   try {
-    console.log(req.body)
+    
     await paises.create({
       nombre: req.body.nombre,
       siglas: req.body.siglas
@@ -149,7 +149,7 @@ exports.newPais = async function (req, res, next) {
 
 exports.updatePais = async function (req, res, next) {
   try {
-    console.log(req.body)
+    
     await Sequelize.sequelize.transaction(async (t) => {
       const p = await paises.update({
         nombre: req.body.nombre,
@@ -168,7 +168,7 @@ exports.updatePais = async function (req, res, next) {
 
 exports.disablePais = async function (req, res, next) {
   try {
-    console.log(req.body)
+    
     await Sequelize.sequelize.transaction(async (t) => {
       const p = await paises.update({
         state: "I",
@@ -176,7 +176,7 @@ exports.disablePais = async function (req, res, next) {
       }, {
         where: { id: parseInt(req.body.id, 10) }
       })
-      console.log(p)
+      
       var u = await user.update({
         state: 'I',
         audDeletedAt: Date.now()
@@ -190,7 +190,6 @@ exports.disablePais = async function (req, res, next) {
           idPais: parseInt(req.body.id, 10)
         }
       })
-      console.log("usuarios eliminados")
       if (us[0]) {
         for (var a of us) {
           if (a.role == 'observer') {
@@ -203,7 +202,6 @@ exports.disablePais = async function (req, res, next) {
           }
         }
       }
-      console.log("observadores eliminados")
       await divisiones.update({
         state: 'I',
         audDeletedAt: Date.now()
@@ -224,7 +222,7 @@ exports.disablePais = async function (req, res, next) {
           var estaciones = await estacion.findAll({
             where: { idUbicacion: division.id }
           })
-          console.log(estaciones)
+          
           if (estaciones[0]) {
             for (var e of estaciones) {
               await observer.update({
@@ -240,7 +238,7 @@ exports.disablePais = async function (req, res, next) {
     })
     res.status(200).send({ message: 'Succesfully disable' })
   } catch (error) {
-    console.log(error)
+    
     res.status(400).send({ message: error.message })
   }
 }

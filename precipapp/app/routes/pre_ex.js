@@ -8,15 +8,18 @@ router.get('/get',
     [authJwt.verifyToken, authJwt.isAdmin],
     precex.getAll)
 
+router.get('/getAll/filtro',
+    precex.getFiltro)
+
 router.post('/new',
     [authJwt.verifyToken, obsEstacion.obsByEst],
     precex.newExtrema)
 
 router.post('/update',
-    [authJwt.verifyToken, authJwt.isAdmin],
+    [authJwt.verifyToken],
     precex.updateExtrema)
 
-router.post('/activateOcupacion',
+router.post('/activate',
     [authJwt.verifyToken, authJwt.isAdmin],
     precex.activeExtrema)
 

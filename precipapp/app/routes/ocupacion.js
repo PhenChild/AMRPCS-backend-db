@@ -3,9 +3,13 @@ const router = express.Router()
 const { authJwt } = require('../middleware')
 const ocupacion = require('../controllers/ocupacion.controller')
 
-router.get('/get',
+router.get('/getAll',
     [authJwt.verifyToken, authJwt.isAdmin],
     ocupacion.getAll)
+
+router.get('/getAll/filtro',
+    [authJwt.verifyToken, authJwt.isAdmin],
+    ocupacion.getFiltro)
 
 router.post('/new',
     [authJwt.verifyToken, authJwt.isAdmin],
@@ -15,7 +19,7 @@ router.post('/update',
     [authJwt.verifyToken, authJwt.isAdmin],
     ocupacion.updateOcupacion)
 
-router.post('/activateOcupacion',
+router.post('/activate',
     [authJwt.verifyToken, authJwt.isAdmin],
     ocupacion.activeOcupacion)
 

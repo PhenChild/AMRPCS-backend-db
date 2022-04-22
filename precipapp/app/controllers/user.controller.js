@@ -1,7 +1,7 @@
 const Sequelize = require('../models')
 const user = require('../models').User
 const observer = require('../models').Observador
-const estacion = require('../models').Estacion
+const ocupacion = require('../models').Ocupacion
 const pais = require('../models').Pais
 const bcrypt = require('bcryptjs')
 const Op = require('sequelize').Op
@@ -12,12 +12,13 @@ exports.getMe = async function (req, res, next) {
       where: { id: req.userId, state: "A" },
       include: [{
         model: pais, required: false, attributes: ['nombre'], as: "Pais"
+      }, {
+        model: ocupacion, required: false, attributes: ['id', 'descripcion']
       }]
     })
       .then(user => {
         var f = ''
         if (user.foto) f = user.foto.toString('base64')
-        console.log(user)
         var json = {
           id: user.id,
           email: user.email,
@@ -26,15 +27,14 @@ exports.getMe = async function (req, res, next) {
           telefono: user.telefono,
           role: user.role,
           pais: user.Pais.nombre,
+          ocupacion: user.Ocupacion.id,
           foto: f,
         }
         res.json(json)
       })
       .catch(err => {
-        console.log(err)
         res.status(419).send({ message: err.message })
-      }
-      )
+      })
   } catch (error) {
     res.status(400).send({ message: error.message })
   }
@@ -48,16 +48,17 @@ getAll = async function (req, res, next) {
       where: { id: req.userId, state: "A" },
       attributes: ['role']
     })
-    console.log(u)
+
     if (u.role == 'admin') role = 'admin'
   }
-  console.log(role)
   var options
   if (role == 'observer') {
     options = {
       where: { state: "A", role: role },
       attributes: ['nombre', 'apellido', 'role'], include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     }
   }
@@ -65,6 +66,8 @@ getAll = async function (req, res, next) {
     options = {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     }
   }
@@ -79,7 +82,7 @@ module.exports.getAll = getAll
 
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
-  console.log(req.query)
+
   if (datos.nombre && datos.correo && datos.role && datos.pais) getUsuariosNombreRolEmailPais(datos.nombre, datos.role, datos.correo, datos.pais, res, next)
   else if (datos.nombre && datos.correo && datos.role) getUsuariosNombreRolEmail(datos.nombre, datos.role, datos.correo, res, next)
   else if (datos.nombre && datos.pais && datos.role) getUsuariosNombrePaisRol(datos.nombre, datos.pais, datos.role, res, next)
@@ -105,6 +108,8 @@ getUsuariosPaisRol = async function (pai, role, res, next) {
       where: { role: role },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -123,6 +128,8 @@ getUsuariosNombrePaisRol = async function (nombre, pai, role, res, next) {
       where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' } },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -138,11 +145,14 @@ getUsuariosNombreCorreoPais = async function (nombre, correo, pai, res, next) {
   try {
     await user.findAll({
       where: {
-        nombre: { [Op.iLike]: '%' + nombre + '%'}, email: { [Op.iLike]: '%' + correo + '%' } },
-        attributes: { exclude: ['password', 'foto'] }, include: [{
-          model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
-        }]
-      })
+        nombre: { [Op.iLike]: '%' + nombre + '%' }, email: { [Op.iLike]: '%' + correo + '%' }
+      },
+      attributes: { exclude: ['password', 'foto'] }, include: [{
+        model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
+      }]
+    })
       .then(user => {
         res.json(user)
       })
@@ -158,6 +168,8 @@ getUsuariosPaisRolEmail = async function (pai, role, correo, res, next) {
       where: { role: role, email: { [Op.iLike]: '%' + correo + '%' } },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -176,7 +188,7 @@ getUsuariosNombrePais = async function (nombre, pai, req, res, next) {
       where: { id: req.userId, state: "A" },
       attributes: ['role']
     })
-    console.log(u)
+
     if (u.role == 'admin') role = 'admin'
   }
   try {
@@ -185,6 +197,8 @@ getUsuariosNombrePais = async function (nombre, pai, req, res, next) {
         where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }] },
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -197,6 +211,8 @@ getUsuariosNombrePais = async function (nombre, pai, req, res, next) {
         where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' }, state: "A" },
         attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -216,7 +232,7 @@ getUsuariosCorreoPais = async function (email, pai, req, res, next) {
       where: { id: req.userId, state: "A" },
       attributes: ['role']
     })
-    console.log(u)
+
     if (u.role == 'admin') role = 'admin'
   }
   try {
@@ -225,6 +241,8 @@ getUsuariosCorreoPais = async function (email, pai, req, res, next) {
         where: { email: { [Op.iLike]: '%' + email + '%' } },
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -237,6 +255,8 @@ getUsuariosCorreoPais = async function (email, pai, req, res, next) {
         where: { role: role, email: { [Op.iLike]: '%' + email + '%' }, state: "A" },
         attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -263,6 +283,8 @@ getUsuariosPais = async function (pai, req, res, next) {
       await user.findAll({
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -275,6 +297,8 @@ getUsuariosPais = async function (pai, req, res, next) {
         where: { role: role, state: "A" },
         attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -302,6 +326,8 @@ getUsuariosNombre = async function (nombre, req, res, next) {
         where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }] },
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -314,6 +340,8 @@ getUsuariosNombre = async function (nombre, req, res, next) {
         where: { role: role, [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], state: "A" },
         attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -332,6 +360,8 @@ getUsuariosRol = async function (role, req, res, next) {
       where: { role: role },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -350,6 +380,8 @@ getUsuariosEmail = async function (correo, req, res, next) {
       where: { id: req.userId, state: "A" },
       attributes: ['role'], include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
     if (u.role == 'admin') role = 'admin'
@@ -360,6 +392,8 @@ getUsuariosEmail = async function (correo, req, res, next) {
         where: { email: { [Op.iLike]: '%' + correo + '%' } },
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -372,6 +406,8 @@ getUsuariosEmail = async function (correo, req, res, next) {
         where: { role: role, email: { [Op.iLike]: '%' + correo + '%' }, state: "A" },
         attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -390,6 +426,8 @@ getUsuariosNombreRol = async function (nombre, role, res, next) {
       where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -408,7 +446,7 @@ getUsuariosNombreEmail = async function (nombre, correo, req, res, next) {
       where: { id: req.userId, state: "A" },
       attributes: ['role']
     })
-    console.log(u)
+
     if (u.role == 'admin') role = 'admin'
   }
   try {
@@ -417,6 +455,8 @@ getUsuariosNombreEmail = async function (nombre, correo, req, res, next) {
         where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], email: { [Op.iLike]: '%' + correo + '%' } },
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -429,6 +469,8 @@ getUsuariosNombreEmail = async function (nombre, correo, req, res, next) {
         where: { role: role, nombre: { [Op.iLike]: '%' + nombre + '%' }, email: { [Op.iLike]: '%' + correo + '%' }, state: "A" },
         attributes: ['nombre', 'apellido', 'role'], include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
+        }, {
+          model: ocupacion, required: false, attributes: ['descripcion']
         }]
       })
         .then(user => {
@@ -447,6 +489,8 @@ getUsuariosRolEmail = async function (role, correo, res, next) {
       where: { role: role, email: { [Op.iLike]: '%' + correo + '%' } },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -464,6 +508,8 @@ getUsuariosNombreRolEmail = async function (nombre, role, correo, res, next) {
       where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role, email: { [Op.iLike]: '%' + correo + '%' } },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -481,6 +527,8 @@ getUsuariosNombreRolEmailPais = async function (nombre, role, correo, pai, res, 
       where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombre + '%' } }, { apellido: { [Op.iLike]: '%' + nombre + '%' } }], role: role, email: { [Op.iLike]: '%' + correo + '%' } },
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
+      }, {
+        model: ocupacion, required: false, attributes: ['descripcion']
       }]
     })
       .then(user => {
@@ -516,7 +564,7 @@ exports.disableUser = async function (req, res, next) {
       }, {
         where: { id: req.params.userid }, returning: true, plain: true
       }, { transaction: t })
-      console.log(u)
+      
 
       if (u[1].role == 'observer') {
         const obs = await observer.update({
@@ -562,13 +610,14 @@ exports.updateUser = async function (req, res, next) {
     })
     res.status(200).send({ message: 'Succesfully updated' })
   } catch (error) {
+    console.log(error)
     res.status(419).send({ message: error.message })
   }
 }
 
 exports.updateSelfUser = async function (req, res, next) {
   try {
-    console.log(req.body)
+
     await Sequelize.sequelize.transaction(async (t) => {
       if (parseInt(req.body.id) == req.userId) {
         var u = await user.update({
@@ -576,7 +625,8 @@ exports.updateSelfUser = async function (req, res, next) {
           nombre: req.body.nombre,
           apellido: req.body.apellido,
           telefono: req.body.telefono,
-          genero: req.body.genero
+          genero: req.body.genero,
+          idOcupacion: parseInt(req.body.idOcupacion)
         }, {
           where: {
             id: parseInt(req.userId)
@@ -596,7 +646,7 @@ exports.updateSelfUser = async function (req, res, next) {
 
 exports.updateSelfUserPass = async function (req, res, next) {
   try {
-    console.log(req.body)
+
     await Sequelize.sequelize.transaction(async (t) => {
       if (parseInt(req.body.id) == req.userId) {
         const u = await user.update({
@@ -635,7 +685,7 @@ exports.adminGetImage = async function (req, res, next) {
 
 exports.updateUserPass = async function (req, res, next) {
   try {
-    console.log(req.body)
+
     await Sequelize.sequelize.transaction(async (t) => {
       const u = await user.update({
         password: bcrypt.hashSync(req.body.newpassword, 8)
@@ -655,7 +705,7 @@ exports.updateUserPass = async function (req, res, next) {
 
 exports.updateUserImage = async function (req, res, next) {
   try {
-    console.log(req.body)
+
     await Sequelize.sequelize.transaction(async (t) => {
       const u = await user.update({
         foto: Buffer.from(req.file.buffer)
@@ -669,16 +719,12 @@ exports.updateUserImage = async function (req, res, next) {
     })
     res.status(200).send({ message: 'Succesfully updated' })
   } catch (error) {
-    console.log(error.message)
     res.status(419).send({ message: error.message })
   }
 }
 
 exports.updateUsers = async function (req, res, next) {
   try {
-    console.log(req.body)
-    console.log(req.body.addedEstaciones)
-    console.log(req.body.deletedEstaciones)
     await Sequelize.sequelize.transaction(async (t) => {
       const u = await user.update({
         email: req.body.usuario.email,
@@ -686,6 +732,7 @@ exports.updateUsers = async function (req, res, next) {
         apellido: req.body.usuario.apellido,
         telefono: req.body.usuario.telefono,
         genero: req.body.usuario.genero,
+        idOcupacion: parseInt(req.body.usuario.idOcupacion),
         idPais: parseInt(req.body.usuario.idPais)
       }, {
         where: {
@@ -728,7 +775,7 @@ exports.updateUsers = async function (req, res, next) {
 
 exports.adminUpdatePassUser = async function (req, res, next) {
   try {
-    console.log(req.body)
+
     await Sequelize.sequelize.transaction(async (t) => {
       const u = await user.update({
         password: bcrypt.hashSync(req.body.password, 8)
@@ -764,7 +811,7 @@ exports.getImage = async function (req, res, next) {
 
 exports.updateImage = async function (req, res, next) {
   try {
-    console.log(req.body)
+
     await Sequelize.sequelize.transaction(async (t) => {
       var u = await user.update({
         foto: Buffer.from(req.file.buffer)
@@ -778,14 +825,13 @@ exports.updateImage = async function (req, res, next) {
     })
     res.status(200).send({ message: 'Succesfully updated' })
   } catch (error) {
-    console.log(error.message)
     res.status(419).send({ message: error.message })
   }
 }
 
 exports.deleteUser = async function (req, res, next) {
   try {
-    console.log(req.body)
+
     await Sequelize.sequelize.transaction(async (t) => {
       var u = await user.update({
         state: 'I',

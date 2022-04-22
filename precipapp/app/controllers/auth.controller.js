@@ -39,7 +39,6 @@ exports.signin = (req, res) => {
       expiresIn: '365d' // 365 dias
     })
     const userRole = user.role.toUpperCase()
-    console.log(user.Pais)
     var json
     if (user.foto) {
       json = {
@@ -93,7 +92,6 @@ async function getHasPluvObs(idUser) {
     })
     return result.Estacion.hasPluviometro;
   } catch (error) {
-    console.log(error);
   }
 }
 
@@ -122,6 +120,8 @@ exports.signup = async (req, res) => {
       nombre: req.body.nombre,
       apellido: req.body.apellido,
       telefono: req.body.telefono,
+      genero: req.body.genero,
+      idOcupacion: parseInt(req.body.idOcupacion),
       idPais: parseInt(req.body.idPais),
       state: 'A',
       foto: a,

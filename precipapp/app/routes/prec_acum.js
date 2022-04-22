@@ -21,12 +21,16 @@ router.get('/getAll',
 router.get('/getAll/filtro',
   acumulado.getFiltro)
 
-router.post('/disable',
-  [authJwt.verifyToken, authJwt.isObserver],
+router.post('/delete',
+  [authJwt.verifyToken, authJwt.isAdmin],
   acumulado.disableAcumulados)
 
-router.post('/update',
+router.post('/activate',
   [authJwt.verifyToken, authJwt.isAdmin],
+  acumulado.activateAcumulados)
+
+router.post('/update',
+  [authJwt.verifyToken],
   acumulado.updateValor)
 
 module.exports = router

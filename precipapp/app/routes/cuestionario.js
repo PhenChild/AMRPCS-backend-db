@@ -16,10 +16,33 @@ router.post('/new',
 /*----------------------------------------------------
 ----------------------------------------------------*/
 
+router.post('/web/new',
+  [authJwt.verifyToken, obsEstacion.obsByEst],
+  cuestionario.newCuestionarioWeb)
+
+
+router.post(
+  '/web/newPicture',
+  upload.single('file'),
+  [authJwt.verifyToken],
+  cuestionario.updateImage)
+
+
 router.get('/getAll',
   cuestionario.getCuestionarios)
 
-router.post('/disable',
+router.get('/getAll/filtro',
+  cuestionario.getFiltro)
+
+router.post('/update',
+  [authJwt.verifyToken],
+  cuestionario.updateCuestionario)
+
+router.post('/activate',
+  [authJwt.verifyToken, authJwt.isAdmin],
+  cuestionario.activateCuestionario)
+
+router.post('/delete',
   [authJwt.verifyToken, authJwt.isAdmin],
   cuestionario.disableCuestionario)
 

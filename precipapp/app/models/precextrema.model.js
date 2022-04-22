@@ -14,14 +14,13 @@ module.exports = (sequelize, DataTypes) => {
         }
     };
     Precipitacion.init({
-        fechaInicio: {field: 'fecha_inicio', type: DataTypes.DATE},
-        fechaFin: {field: 'fecha_fin', type: DataTypes.DATE},
-        valor: DataTypes.FLOAT,
-        exactitud: {field: 'exactitud_temporal', type: DataTypes.STRING},
-        inundacion: DataTypes.STRING,
-        eventos: DataTypes.STRING,
-        granizo: DataTypes.BOOLEAN,
-        deslizamiento: DataTypes.BOOLEAN,
+        fecha: DataTypes.DATE,
+        inundacion: DataTypes.INTEGER,
+        granizo: DataTypes.INTEGER,
+        rayos: DataTypes.INTEGER,
+        deslizamiento: DataTypes.INTEGER,
+        vientos: DataTypes.INTEGER,
+        isNotificacion: DataTypes.BOOLEAN,
         comentario: DataTypes.STRING(300),
         state: {
             type: DataTypes.CHAR,
