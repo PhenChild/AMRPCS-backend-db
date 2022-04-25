@@ -23,7 +23,18 @@ exports.getFotosCuestionario = async function (req, res, next) {
       attributes: { exclude: ['state'] }
     })
       .then(fotos => {
-        res.json(fotos)
+        var arr = []
+        if (fotos[0]) {
+          for (var f of fotos) {
+            json = {
+              id: f.id,
+              idCuestionario: f.idCuestionario,
+              foto: f.foto.toString('base64') 
+            }
+            arr.push(json)
+          }
+        }
+        res.json(arr)
       })
       .catch(err => res.json(err.message))
   } catch (error) {
@@ -46,17 +57,17 @@ exports.createFoto = async function (req, res, next) {
 
 exports.updateFoto = async function (req, res, next) {
   try {
-      await Sequelize.sequelize.transaction(async (t) => {
-          const c = await fotos.update({
-            foto: Buffer.from(req.file.buffer)
-          }, {
-              where: { id: parseInt(req.body.id, 10) }
-          }, { transaction: t })
-          return p
-      })
-      res.status(200).send({ message: 'Succesfully Activate' })
+    await Sequelize.sequelize.transaction(async (t) => {
+      const c = await fotos.update({
+        foto: Buffer.from(req.file.buffer)
+      }, {
+        where: { id: parseInt(req.body.id, 10) }
+      }, { transaction: t })
+      return p
+    })
+    res.status(200).send({ message: 'Succesfully Activate' })
   } catch (error) {
-      res.status(400).send({ message: error.message })
+    res.status(400).send({ message: error.message })
   }
 }
 

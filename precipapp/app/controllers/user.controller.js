@@ -27,7 +27,7 @@ exports.getMe = async function (req, res, next) {
           telefono: user.telefono,
           role: user.role,
           pais: user.Pais.nombre,
-          ocupacion: user.Ocupacion.id,
+          ocupacion: (user.Ocupacion) ? user.Ocupacion.id: null,
           foto: f,
         }
         res.json(json)
