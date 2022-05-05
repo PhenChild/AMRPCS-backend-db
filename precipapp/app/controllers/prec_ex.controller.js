@@ -1,5 +1,6 @@
 const precipitacionesEx = require('../models').PrecEx
 const observadores = require('../models').Observador
+const correos = require('../models').Correo
 const usuarios = require('../models').User
 const estaciones = require('../models').Estacion
 const divisiones = require('../models').Division
@@ -8,7 +9,7 @@ const Sequelize = require('../models')
 var nodemailer = require('nodemailer');
 const Op = require('sequelize').Op
 
-var transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     service: 'outlook',
     auth: {
         user: 'micxarce@espol.edu.ec',
@@ -29,21 +30,54 @@ exports.newExtrema = async function (req, res, next) {
                 comentario: req.body.comentario,
                 isNotificacion: req.body.notificacion,
                 idObservador: parseInt(req.obsId)
-            }, { transaction: t }).then(acum => {
+            }, { transaction: t }).then(async (acum) => {
                 if (req.body.notificacion) {
-                    var mailOptions = {
-                        from: 'micxarce@espol.edu.ec',
-                        to: 'micharsie@yahoo.com',
-                        subject: 'Sending Email using Node.js',
-                        text: 'That was easy!'
-                    };
-
-                    transporter.sendMail(mailOptions, function (error, info) {
-                        if (error) {
-                            ;
-                        } else {
+                    var obs = await observadores.findOne({
+                        where: { state: 'A', id: parseInt(req.obsId) },
+                        required: true,
+                        include: {
+                            model: usuarios, required: true, where: { state: 'A' }, attributes: ['nombre', 'apellido', 'email']
                         }
-                    });
+                    })
+                    var est = await estaciones.findOne({
+                        where: { state: 'A', id: parseInt(req.body.estacion) }
+                    })
+                    var division = await divisiones.findOne({
+                        where: { state: 'A', id: est.idUbicacion }
+                    })
+                    if (division) {
+                        var text = `La estación ` + est.nombre + "(" + est.codigo + `) reporta un evento de precipitación extrema con las siguientes características:`
+                            + "\n  - Fecha: " + req.body.fecha.slice(0, 20)
+                            + ((parseInt(req.body.inundacion) == 1) ? `\n   - Inundación` : "")
+                            + ((parseInt(req.body.granizo) == 1) ? `\n   - Granizo` : "")
+                            + ((parseInt(req.body.rayos) == 1) ? `\n   - Rayos` : "")
+                            + ((parseInt(req.body.deslizamiento) == 1) ? `\n   - Deslizamientos` : "")
+                            + ((parseInt(req.body.vientos) == 1) ? `\n   - Vientos Fuertes` : "")
+                            + ((req.body.comentario) ? `\n   - Comentario: ` + req.body.comentario : "")
+                            + `\nInformación de la estación:` 
+                            + `\n   - Nombre: ` + est.nombre + "(" + est.codigo + ")"
+                            + `\n   - Latitud: ` + est.posicion.coordinates[0]
+                            + `\n   - Longitud: ` + est.posicion.coordinates[1]
+                            + `\n   - Altitud: ` + est.altitud
+                            + `\nInformación del usuario:` 
+                            + `\n   - Nombre: ` + obs.User.nombre + " " + obs.User.apellido
+                            + `\n   - Correo: ` + obs.User.email
+                        
+                        var correo = await correos.findOne({
+                                where: { state: 'A', idPais: division.idPais }
+                            })
+                        var mailOptions = {
+                            from: 'micxarce@espol.edu.ec',
+                            to: correo.url,
+                            subject: 'VOLUNCLIMA - ALERTA DE PRECIPITACIÓN EXTREMA - ' + est.nombre + "(" + est.codigo + ")",
+                            text: text
+                        };
+                        transporter.sendMail(mailOptions, function (error, info) {
+                            if (error) {
+                                console.log(error)
+                            }
+                        });
+                    }
                 }
                 res.status(200).send({ message: 'Succesfully created' })
             })
@@ -92,7 +126,7 @@ exports.updateExtrema = async function (req, res, next) {
 
 exports.disableExtrema = async function (req, res, next) {
     try {
-        
+
         await Sequelize.sequelize.transaction(async (t) => {
             const p = await precipitacionesEx.update({
                 state: 'I',
@@ -110,7 +144,7 @@ exports.disableExtrema = async function (req, res, next) {
 
 exports.activeExtrema = async function (req, res, next) {
     try {
-        
+
         await Sequelize.sequelize.transaction(async (t) => {
             const p = await precipitacionesEx.update({
                 state: 'A'
@@ -145,7 +179,7 @@ getPrecipitacionesEx = async function (options, req, res, next) {
             })
             .catch(err => res.json(err.message))
     } catch (error) {
-        
+
         res.status(400).send({ message: error.message })
     }
 }
@@ -159,10 +193,10 @@ exports.getFiltro = async function (req, res, next) {
     if (!datos.fechaFin) fF = new Date(Date.now() + 82800000)
     else fF = datos.fechaFin
     var role = getUserRole(req)
-    
+
     console.log(fI)
     console.log(fF)
-    
+
     var options
     if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
         if (role == 'observer ') options = {

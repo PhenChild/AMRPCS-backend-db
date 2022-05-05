@@ -1,6 +1,7 @@
 const Sequelize = require('../models')
 const Op = require('sequelize').Op
 const ocupaciones = require('../models').Ocupacion
+const sectores = require('../models').Sector
 
 exports.getAll = async function (req, res, next) {
     try {
@@ -13,11 +14,28 @@ exports.getAll = async function (req, res, next) {
     }
 }
 
+exports.getAllSector = async function (req, res, next) {
+    try {
+        console.log(req.body)
+        await ocupaciones.findAll({
+            where: {idSector: parseInt(req.body.id)},
+            include: {
+              model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+            }
+        }).then(ocupaciones => {
+                res.json(ocupaciones)
+            })
+    } catch (error) {
+        res.status(400).send({ message: error.message })
+    }
+}
+
 exports.newOcupacion = async function (req, res, next) {
     try {
         
         await ocupaciones.create({
-            descripcion: req.body.descripcion
+            descripcion: req.body.descripcion,
+            idSector: parseInt(req.body.sector)
         }).then(ocupacion => {
             res.status(200).send({ message: 'Succesfully created' })
         }).catch(err => res.status(419).send({ message: err.message }))
@@ -31,7 +49,8 @@ exports.updateOcupacion = async function (req, res, next) {
         
         await Sequelize.sequelize.transaction(async (t) => {
             const p = await ocupaciones.update({
-                descripcion: req.body.descripcion
+                descripcion: req.body.descripcion,
+                idSector: parseInt(req.body.sector)
             }, {
                 where: { id: parseInt(req.body.id, 10) }
             }, { transaction: t })
@@ -93,15 +112,36 @@ exports.getFiltro = async function (req, res, next) {
     var datos = req.query
     
     var options
-  
-    if (datos.descripcion) {
+    if (datos.sector && datos.descripcion) {
+        options = {
+          where: { descripcion: { [Op.iLike]: '%' + datos.descripcion + '%' }, idSector: parseInt(datos.sector)},
+          include: {
+            model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+          }
+        }
+      }
+    else if (datos.sector) {
+        options = {
+          where: { idSector: parseInt(datos.sector)},
+          include: {
+            model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+          }
+        }
+      }
+    else if (datos.descripcion) {
       options = {
-        where: { descripcion: { [Op.iLike]: '%' + datos.descripcion + '%' }}
+        where: { descripcion: { [Op.iLike]: '%' + datos.descripcion + '%' }},
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }
     }
     else {
       options = {
-        where: { }
+        where: { },
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }
     }
     getOcupaciones(options, req, res, next)

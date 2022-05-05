@@ -3,6 +3,7 @@ const user = require('../models').User
 const observer = require('../models').Observador
 const ocupacion = require('../models').Ocupacion
 const pais = require('../models').Pais
+const sectores = require('../models').Sector
 const bcrypt = require('bcryptjs')
 const Op = require('sequelize').Op
 
@@ -109,7 +110,10 @@ getUsuariosPaisRol = async function (pai, role, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {
@@ -129,7 +133,10 @@ getUsuariosNombrePaisRol = async function (nombre, pai, role, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {
@@ -150,7 +157,10 @@ getUsuariosNombreCorreoPais = async function (nombre, correo, pai, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {
@@ -169,7 +179,10 @@ getUsuariosPaisRolEmail = async function (pai, role, correo, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {
@@ -198,7 +211,10 @@ getUsuariosNombrePais = async function (nombre, pai, req, res, next) {
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
         }, {
-          model: ocupacion, required: false, attributes: ['descripcion']
+          model: ocupacion, required: false, attributes: ['descripcion'],
+          include: {
+            model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+          }
         }]
       })
         .then(user => {
@@ -242,7 +258,10 @@ getUsuariosCorreoPais = async function (email, pai, req, res, next) {
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
         }, {
-          model: ocupacion, required: false, attributes: ['descripcion']
+          model: ocupacion, required: false, attributes: ['descripcion'],
+          include: {
+            model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+          }
         }]
       })
         .then(user => {
@@ -284,7 +303,10 @@ getUsuariosPais = async function (pai, req, res, next) {
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
         }, {
-          model: ocupacion, required: false, attributes: ['descripcion']
+          model: ocupacion, required: false, attributes: ['descripcion'],
+          include: {
+            model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+          }
         }]
       })
         .then(user => {
@@ -327,7 +349,10 @@ getUsuariosNombre = async function (nombre, req, res, next) {
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }, {
-          model: ocupacion, required: false, attributes: ['descripcion']
+          model: ocupacion, required: false, attributes: ['descripcion'],
+          include: {
+            model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+          }
         }]
       })
         .then(user => {
@@ -361,7 +386,10 @@ getUsuariosRol = async function (role, req, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {
@@ -381,7 +409,10 @@ getUsuariosEmail = async function (correo, req, res, next) {
       attributes: ['role'], include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
     if (u.role == 'admin') role = 'admin'
@@ -427,7 +458,10 @@ getUsuariosNombreRol = async function (nombre, role, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {
@@ -456,7 +490,10 @@ getUsuariosNombreEmail = async function (nombre, correo, req, res, next) {
         attributes: { exclude: ['password', 'foto'] }, include: [{
           model: pais, as: 'Pais', required: true, attributes: ['nombre']
         }, {
-          model: ocupacion, required: false, attributes: ['descripcion']
+          model: ocupacion, required: false, attributes: ['descripcion'],
+          include: {
+            model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+          }
         }]
       })
         .then(user => {
@@ -490,7 +527,10 @@ getUsuariosRolEmail = async function (role, correo, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {
@@ -509,7 +549,10 @@ getUsuariosNombreRolEmail = async function (nombre, role, correo, res, next) {
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['descripcion']
+        }
       }]
     })
       .then(user => {
@@ -528,7 +571,10 @@ getUsuariosNombreRolEmailPais = async function (nombre, role, correo, pai, res, 
       attributes: { exclude: ['password', 'foto'] }, include: [{
         model: pais, as: 'Pais', required: true, where: { nombre: { [Op.iLike]: '%' + pai + '%' } }, attributes: ['nombre']
       }, {
-        model: ocupacion, required: false, attributes: ['descripcion']
+        model: ocupacion, required: false, attributes: ['descripcion'],
+        include: {
+          model: sectores, required: true, where: { state: 'A' }, attributes: ['id', 'descripcion']
+        }
       }]
     })
       .then(user => {

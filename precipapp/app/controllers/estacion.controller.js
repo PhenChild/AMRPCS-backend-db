@@ -25,6 +25,57 @@ getUserRole = async function (req) {
   return role
 }
 
+exports.getInfoEstacion = async function (req, res) {
+  try {
+    var e = await estacion.findOne({
+      where: { [Op.or]: [{ nombre: req.body.estacion }, { codigo: req.body.estacion }], state: 'A' },
+      attributes: { exclude: ['state', 'foto'] },
+      required: true,
+      include: [{
+        model: division, required: true, where: { state: 'A' }, include: [{
+          model: pais, required: true, where: { state: 'A' }
+        }]
+      }]
+    })
+
+    var d3
+    var d2
+    var d1
+    d3 = await division.findOne({
+      where: { id: e.idUbicacion, state: 'A' },
+      required: true
+    })
+    d2 = await division.findOne({
+      where: { id: d3.idPadre, state: 'A' },
+      required: true
+    })
+    d1 = await division.findOne({
+      where: { id: d2.idPadre, state: 'A' },
+      required: true
+    })
+
+    var jsonEstacion = {
+      nombre: e.nombre,
+      Division: e.Division,
+      altitud: e.altitud,
+      codigo: e.codigo,
+      direccion: e.direccion,
+      hasPluviometro: e.hasPluviometro,
+      idUbicacion: e.idUbicacion,
+      posicion: e.posicion,
+      referencias: e.referencias,
+      division1: d1,
+      division2: d2,
+      division3: d3,
+    }
+    console.log(jsonEstacion)
+    res.json(jsonEstacion)
+
+  } catch (error) {
+    res.status(400).send({ message: error.message })
+  }
+}
+
 getEstaciones = async function (options, role, req, res, next) {
   try {
     var u
@@ -616,23 +667,61 @@ exports.getUsuariosPorEstaciones = async function (req, res, next) {
     for (var est of req.body.estaciones) {
       arr = []
       var e = await estacion.findOne({
-        attributes: { exclude: ['foto', 'audCreatedAt', 'audDeletedAt', 'audUpdatedAt', 'idUbicacion', 'id'] },
-        where: {id: est.id},
-        required: true
-      })
-      console.log(e)
-      arr.push(e)
-      var obs = await observadores.findAll({
-        attributes: [],
-        where: {idEstacion: est.id},
+        attributes: { exclude: ['foto', 'audCreatedAt', 'audDeletedAt', 'audUpdatedAt', 'id'] },
+        where: { id: est.id },
         required: true,
         include: [{
-          model: usuarios, required: true, attributes: ["nombre", "apellido"] 
+          model: division, required: true, where: { state: 'A' }, include: [{
+            model: pais, required: true, where: { state: 'A' }
+          }]
+        }]
+      })
+
+      var d3
+      var d2
+      var d1
+
+      d3 = await division.findOne({
+        where: { id: e.idUbicacion, state: 'A' },
+        required: true
+      })
+      d2 = await division.findOne({
+        where: { id: d3.idPadre, state: 'A' },
+        required: true
+      })
+      d1 = await division.findOne({
+        where: { id: d2.idPadre, state: 'A' },
+        required: true
+      })
+
+      var jsonEstacion = {
+        nombre: e.nombre,
+        Division: e.Division,
+        altitud: e.altitud,
+        codigo: e.codigo,
+        direccion: e.direccion,
+        hasPluviometro: e.hasPluviometro,
+        idUbicacion: e.idUbicacion,
+        posicion: e.posicion,
+        referencias: e.referencias,
+        division1: d1,
+        division2: d2,
+        division3: d3,
+        state: e.state,
+        itsMine: ''
+      }
+      arr.push(jsonEstacion)
+      var obs = await observadores.findAll({
+        attributes: [],
+        where: { idEstacion: est.id },
+        required: true,
+        include: [{
+          model: usuarios, required: true, attributes: ["nombre", "apellido"]
         }]
       })
       var usersArr = []
       for (var o of obs) {
-        json = {nombre: o.User.nombre + ' ' + o.User.apellido}
+        json = { nombre: o.User.nombre + ' ' + o.User.apellido }
         usersArr.push(json)
       }
       arr.push(usersArr)

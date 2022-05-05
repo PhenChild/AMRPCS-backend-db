@@ -114,6 +114,7 @@ exports.getCuestionarios = async function (req, res, next) {
 
 exports.updateCuestionario = async function (req, res, next) {
     try {
+        console.log(req.body)
         await Sequelize.sequelize.transaction(async (t) => {
             var role = await getUserRole(req)
             console.log(role)
@@ -137,12 +138,12 @@ exports.updateCuestionario = async function (req, res, next) {
             }
             const c = await cuestionarios.update({
                 fecha: Date.parse(req.body.fecha),
-                respSuelo: req.body.rsuelo,
-                respVeg: req.body.rveg,
-                respPrec: req.body.rprec,
-                respTempPrec: req.body.rtprec,
-                respTemps: req.body.rtemps,
-                respGana: req.body.rgana,
+                respSuelo: req.body.respSuelo,
+                respVeg: req.body.respVeg,
+                respPrec: req.body.respPrec,
+                respTempPrec: req.body.respTempPrec,
+                respTemps: req.body.respTemps,
+                respGana: req.body.respGana,
                 comentario: req.body.comentario,
                 idObservador: req.obsId
             }, {

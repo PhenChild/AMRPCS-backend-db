@@ -7,6 +7,10 @@ router.get('/getAll',
     [authJwt.verifyToken, authJwt.isAdmin],
     ocupacion.getAll)
 
+router.post('/getAllSector',
+    [authJwt.verifyToken, authJwt.isAdmin],
+    ocupacion.getAllSector)
+
 router.get('/getAll/filtro',
     [authJwt.verifyToken, authJwt.isAdmin],
     ocupacion.getFiltro)

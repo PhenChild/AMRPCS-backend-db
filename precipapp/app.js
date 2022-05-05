@@ -17,6 +17,7 @@ const extremaRouter = require('./app/routes/pre_ex')
 const cuestionarioRouter = require('./app/routes/cuestionario')
 const fotoRouter = require('./app/routes/foto')
 const ocupacionRouter = require('./app/routes/ocupacion')
+const sectorRouter = require('./app/routes/sector')
 
 const app = express()
 
@@ -52,6 +53,7 @@ app.use('/api/extrema', extremaRouter)
 app.use('/api/cuestionario', cuestionarioRouter)
 app.use('/api/foto', fotoRouter)
 app.use('/api/ocupacion', ocupacionRouter)
+app.use('/api/sector', sectorRouter)
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

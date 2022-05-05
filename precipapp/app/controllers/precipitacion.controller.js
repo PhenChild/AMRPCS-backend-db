@@ -4,6 +4,7 @@ const usuarios = require('../models').User
 const user = require('../models').User
 const estaciones = require('../models').Estacion
 const divisiones = require('../models').Division
+const { resolveContent } = require('nodemailer/lib/shared')
 const Sequelize = require('../models')
 const Op = require('sequelize').Op
 
@@ -975,10 +976,10 @@ getDatosGraficos = async function (req, res, next) {
         ['fecha', 'ASC']
       ],
       required: true,
-      attributes: ['fecha', 'valor'],
+      attributes: ['fecha', 'valor', 'comentario', 'idObservador'],
       include: [{
-        model: observadores, required: true, where: { state: 'A' }, attributes: [], include: [{
-          model: usuarios, required: true, where: { state: 'A' }
+        model: observadores, required: true, where: { state: 'A' }, attributes: ['idUser'], include: [{
+          model: usuarios, required: true, where: { state: 'A' }, attributes: ['nombre', 'apellido']
         }, {
           model: estaciones, required: true, where: { [Op.or]: [{ nombre: { [Op.iLike]: '%' + nombreEstacion + '%' } }, { codigo: { [Op.iLike]: '%' + nombreEstacion + '%' } }], state: 'A' }, attributes: []
         }]
@@ -991,22 +992,15 @@ getDatosGraficos = async function (req, res, next) {
   var i = 0
   for (var prec of datesPrec) {
     while (dates[i] < new Date(prec.fecha)) {
-      var j = { fecha: dates[i], valor: -1 }
+      var j = { fecha: dates[i], valor: -1, comentario: '', Observador: '' }
       jsonArray.push(j)
       i += 1
     }
-    if (prec == fechaFin) {
-      var j = { fecha: dates[i], valor: -1 }
-      jsonArray.push(j)
-      i += 1
-    }
-    else {
-      jsonArray.push(prec)
-      i += 1
-    }
+    jsonArray.push(prec)
+    i += 1
   }
   for (i; i < tama; i++) {
-    jsonArray.push({ fecha: dates[i], valor: -1 })
+    jsonArray.push({ fecha: dates[i], valor: -1, comentario: '', Observador: '' })
   }
   res.json(jsonArray)
 }
@@ -1049,7 +1043,7 @@ exports.updateValor = async function (req, res, next) {
       if (role == "observer") {
         var obs = await observadores.findAll({
           attributes: ["id"],
-          where: {idUser: req.userId}
+          where: { idUser: req.userId }
         })
         var hasRecord = false;
         if (obs[0]) {

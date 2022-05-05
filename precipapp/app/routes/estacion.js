@@ -8,6 +8,9 @@ const upload = multer({ storage: multer.memoryStorage() })
 router.get('/getAll',
   estacion.getEstaciones)
 
+router.post('/getInfoEstacion',
+  estacion.getInfoEstacion)
+
 router.get('/getAll/filtro',
   [authJwt.verifyUser],
   estacion.getFiltro)
