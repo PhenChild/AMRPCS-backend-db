@@ -638,7 +638,6 @@ exports.disableUser = async function (req, res, next) {
 
 exports.updateUser = async function (req, res, next) {
   try {
-    console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       const u = await user.update({
         email: req.body.email,

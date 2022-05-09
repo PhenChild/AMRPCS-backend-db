@@ -9,32 +9,32 @@ const Observer = db.Observador
 ----------------------------------------------------*/
 // eslint-disable-next-line no-undef
 obsByEst = (req, res, next) => {
-  console.log(req.body)
-    try {
-      Observer.findOne({
-        where: {
-          idUser: req.userId,
-          idEstacion: req.body.estacion,
-          state: 'A'
-        }
-      }).then(obs => {
-        if (obs) {
-          req.obsId = obs.id
-          next()
-          return
-        }
-        res.status(403).send({
-          message: 'Require Observer Role for this station!'
-        })
-      }).catch(err => { 
-        res.status(400).send({ message: err.message }) })
-    } catch (error) {
-      res.status(400).send({ message: error.message })
-    }
+  try {
+    Observer.findOne({
+      where: {
+        idUser: req.userId,
+        idEstacion: req.body.estacion,
+        state: 'A'
+      }
+    }).then(obs => {
+      if (obs) {
+        req.obsId = obs.id
+        next()
+        return
+      }
+      res.status(403).send({
+        message: 'Require Observer Role for this station!'
+      })
+    }).catch(err => {
+      res.status(400).send({ message: err.message })
+    })
+  } catch (error) {
+    res.status(400).send({ message: error.message })
   }
+}
 
-  const obsEstacion = {
-    // eslint-disable-next-line no-undef
-    obsByEst: obsByEst
-  }
-  module.exports = obsEstacion
+const obsEstacion = {
+  // eslint-disable-next-line no-undef
+  obsByEst: obsByEst
+}
+module.exports = obsEstacion

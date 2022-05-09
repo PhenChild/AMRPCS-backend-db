@@ -19,6 +19,7 @@ router.get('/getAll',
   precipitacion.getPrecipitaciones)
 
 router.get('/getAll/filtro',
+  [authJwt.verifyUser],
   precipitacion.getFiltro)
 
 router.get('/getAll/filtroGrafico',

@@ -32,6 +32,7 @@ router.get('/getAll',
   cuestionario.getCuestionarios)
 
 router.get('/getAll/filtro',
+  [authJwt.verifyUser],
   cuestionario.getFiltro)
 
 router.post('/update',

@@ -68,7 +68,6 @@ exports.getInfoEstacion = async function (req, res) {
       division2: d2,
       division3: d3,
     }
-    console.log(jsonEstacion)
     res.json(jsonEstacion)
 
   } catch (error) {

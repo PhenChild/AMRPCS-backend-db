@@ -24,7 +24,6 @@ exports.getEstacionObs = async function (req, res, next) {
         model: estacion, required: true, attributes: { exclude: ['foto'] }, where: {state: 'A'}
       }]
     }).then(obs => {
-      console.log(obs)
       res.status(200).send(obs)
     })
   } catch (error) {

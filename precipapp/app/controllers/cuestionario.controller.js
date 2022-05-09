@@ -51,7 +51,6 @@ exports.newCuestionario = async function (req, res, next) {
 ----------------------------------------------------*/
 
 exports.newCuestionarioWeb = async function (req, res, next) {
-    console.log(req.body)
     try {
         await Sequelize.sequelize.transaction(async (t) => {
             await cuestionarios.create({
@@ -74,8 +73,6 @@ exports.newCuestionarioWeb = async function (req, res, next) {
 }
 
 exports.updateImage = async function (req, res, next) {
-    console.log(req.body)
-    console.log(req.file)
     try {
         await Sequelize.sequelize.transaction(async (t) => {
             await fotos.create({
@@ -114,11 +111,8 @@ exports.getCuestionarios = async function (req, res, next) {
 
 exports.updateCuestionario = async function (req, res, next) {
     try {
-        console.log(req.body)
         await Sequelize.sequelize.transaction(async (t) => {
             var role = await getUserRole(req)
-            console.log(role)
-            console.log(req.userId)
             if (role == "observer") {
                 var obs = await observadores.findAll({
                     attributes: ["id"],
@@ -205,15 +199,18 @@ exports.disableCuestionario = async function (req, res, next) {
 
 getUserRole = async function (req) {
     var role = 'observer'
-    if (req.userId >= 0) {
-        var u = await user.findOne({
-            where: { id: req.userId, state: "A" },
-            attributes: ['role']
-        })
-        if (u.role == 'admin') role = 'admin'
+    if (!req.userId) {
+      role = 'user'
+    }
+    else if (req.userId >= 0) {
+      var u = await user.findOne({
+        where: { id: req.userId, state: "A" },
+        attributes: ['role']
+      })
+      if (u.role == 'admin') role = 'admin'
     }
     return role
-}
+  }
 
 getCuestionarios = async function (options, req, res, next) {
     try {

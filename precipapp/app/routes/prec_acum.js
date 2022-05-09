@@ -19,6 +19,7 @@ router.get('/getAll',
   acumulado.getAcumulados)
 
 router.get('/getAll/filtro',
+  [authJwt.verifyUser],
   acumulado.getFiltro)
 
 router.post('/delete',

@@ -3,7 +3,7 @@ const {
     Model
 } = require('sequelize')
 module.exports = (sequelize, DataTypes) => {
-    class Correo extends Model {
+    class CorreoEmergencia extends Model {
         /**
          * Helper method for defining associations.
          * This method is not a part of Sequelize lifecycle.
@@ -11,11 +11,11 @@ module.exports = (sequelize, DataTypes) => {
          */
         static associate(models) {
             // define association here
-            Correo.belongsTo(models.Pais, { foreignKey: 'idPais', as: "Pais" })
+            CorreoEmergencia.belongsTo(models.Pais, { foreignKey: 'idPais', as: "Pais" })
         }
     };
-    Correo.init({
-        url: DataTypes.STRING,
+    CorreoEmergencia.init({
+        email: DataTypes.STRING,
         idPais: {
             field: 'idPais',
             type: DataTypes.INTEGER,
@@ -41,10 +41,10 @@ module.exports = (sequelize, DataTypes) => {
     }, {
         sequelize,
         schema: 'bh',
-        modelName: 'Correo',
+        modelName: 'CorreoEmergencia',
         timestamps: false,
         freezeTableName: true,
-        tableName: 'correo',
+        tableName: 'CorreoEmergencia',
     })
-    return Correo
+    return CorreoEmergencia
 }

@@ -16,7 +16,6 @@ exports.getAll = async function (req, res, next) {
 
 exports.getAllSector = async function (req, res, next) {
     try {
-        console.log(req.body)
         await ocupaciones.findAll({
             where: {idSector: parseInt(req.body.id)},
             include: {

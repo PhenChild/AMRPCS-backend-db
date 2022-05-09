@@ -9,6 +9,7 @@ router.get('/get',
     precex.getAll)
 
 router.get('/getAll/filtro',
+    [authJwt.verifyUser],
     precex.getFiltro)
 
 router.post('/new',

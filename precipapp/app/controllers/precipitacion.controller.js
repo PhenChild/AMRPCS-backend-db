@@ -34,7 +34,10 @@ exports.newPrecipitacion = async function (req, res, next) {
 
 getUserRole = async function (req) {
   var role = 'observer'
-  if (req.userId >= 0) {
+  if (!req.userId) {
+    role = 'user'
+  }
+  else if (req.userId >= 0) {
     var u = await user.findOne({
       where: { id: req.userId, state: "A" },
       attributes: ['role']
@@ -43,7 +46,6 @@ getUserRole = async function (req) {
   }
   return role
 }
-
 getPrecipitaciones = async function (options, req, res, next) {
   try {
     await precipitaciones.findAll(options)
@@ -60,7 +62,6 @@ module.exports.getPrecipitaciones = getPrecipitaciones
 
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
-  console.log(req.query)
   var fI = datos.fechaInicio
   var fF
   if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
@@ -68,8 +69,6 @@ exports.getFiltro = async function (req, res, next) {
   else fF = datos.fechaFin
   var role = getUserRole(req)
   var options
-  console.log(fI)
-  console.log(fF)
   if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer') options = {
       where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
@@ -1035,11 +1034,8 @@ getPrecipitacionesGrafico = async function (req, res, next) {
 
 exports.updateValor = async function (req, res, next) {
   try {
-    console.log(req.body)
     await Sequelize.sequelize.transaction(async (t) => {
       var role = await getUserRole(req)
-      console.log(role)
-      console.log(req.userId)
       if (role == "observer") {
         var obs = await observadores.findAll({
           attributes: ["id"],
