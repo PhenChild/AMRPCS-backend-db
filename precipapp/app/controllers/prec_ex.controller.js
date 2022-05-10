@@ -39,11 +39,11 @@ exports.newExtrema = async function (req, res, next) {
                     var division = await divisiones.findOne({
                         where: { id: est.idUbicacion }
                     })
-                    var d2 = await division.findOne({
-                        where: { id: d3.idPadre, state: 'A' },
+                    var d2 = await divisiones.findOne({
+                        where: { id: division.idPadre, state: 'A' },
                         required: true
                     })
-                    var d1 = await division.findOne({
+                    var d1 = await divisiones.findOne({
                         where: { id: d2.idPadre, state: 'A' },
                         required: true
                     })
@@ -54,8 +54,8 @@ exports.newExtrema = async function (req, res, next) {
                     })
 
                     if (division.id) {
-                        var text = `La estación ` + est.nombre + "(" + est.codigo + " - " + d1.nombre + ", " + d2.nombre + ", " + division.nombre + ", " + pais.nombre + ", "  + ` ) reporta un evento de precipitación extrema con las siguientes características:`
-                            + "\n  - Fecha: " + req.body.fecha.slice(0, 20)
+                        var text = `La estación ` + est.nombre + "(" + est.codigo + `) reporta un evento de precipitación extrema con las siguientes características:`
+                            + "\n  - Fecha: " + ((req.body.fecha.slice(0, 20)).split('T')).join(' ')
                             + ((parseInt(req.body.inundacion) == 1) ? `\n   - Inundación` : "")
                             + ((parseInt(req.body.granizo) == 1) ? `\n   - Granizo` : "")
                             + ((parseInt(req.body.rayos) == 1) ? `\n   - Rayos` : "")
@@ -64,8 +64,9 @@ exports.newExtrema = async function (req, res, next) {
                             + ((req.body.comentario) ? `\n   - Comentario: ` + req.body.comentario : "")
                             + `\nInformación de la estación:`
                             + `\n   - Nombre: ` + est.nombre + "(" + est.codigo + ")"
+                            + `\n   - Ubicacion: ` + division.nombre + ", " + d2.nombre + ", " + d1.nombre + ", " + pais.nombre
                             + `\n   - Latitud: ` + est.posicion.coordinates[0]
-                            + `\n   - Longitud: ` + est.posicion.coordinates[1]
+                            + `\n   - Longitud: ` + est.posicion.coordinates[1] + " m.s.n.m."
                             + `\n   - Altitud: ` + est.altitud
                             + `\nInformación del usuario:`
                             + `\n   - Nombre: ` + obs.User.nombre + " " + obs.User.apellido
@@ -100,6 +101,7 @@ exports.newExtrema = async function (req, res, next) {
             })
         })
     } catch (error) {
+        console.log(error)
         res.status(400).send({ message: error.message })
     }
 }
@@ -210,11 +212,11 @@ exports.getFiltro = async function (req, res, next) {
     if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
     if (!datos.fechaFin) fF = new Date(Date.now() + 82800000)
     else fF = datos.fechaFin
-    var role = getUserRole(req)
+    var role = await getUserRole(req)
 
     var options
     if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -243,7 +245,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.pais && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -272,7 +274,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.pais && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -301,7 +303,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.estacion && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -330,7 +332,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.estacion && datos.codigo && datos.pais) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -359,7 +361,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -384,7 +386,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.estacion && datos.codigo) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -409,7 +411,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.pais && datos.estacion && datos.codigo) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -438,7 +440,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.pais && datos.codigo) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -467,7 +469,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.estacion && datos.pais) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -496,7 +498,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.pais && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -525,7 +527,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.codigo && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -556,7 +558,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.pais && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -585,7 +587,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.codigo && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -610,7 +612,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -635,7 +637,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -660,7 +662,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -685,7 +687,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -710,7 +712,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.estacion && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -735,7 +737,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.pais && (datos.fechaInicio || datos.fechaFin)) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -764,7 +766,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.pais && datos.codigo) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -792,7 +794,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.pais) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -821,7 +823,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.estacion && datos.pais) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -849,7 +851,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.codigo) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -873,7 +875,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.estacion && datos.codigo) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -897,7 +899,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador && datos.estacion) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -921,7 +923,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.fechaInicio || datos.fechaFin) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { fecha: { [Op.between]: [fI, fF] }, state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -946,7 +948,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.observador) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -970,7 +972,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.codigo) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -994,7 +996,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.estacion) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -1018,7 +1020,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else if (datos.pais) {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,
@@ -1046,7 +1048,7 @@ exports.getFiltro = async function (req, res, next) {
         }
     }
     else {
-        if (role == 'observer ') options = {
+        if (role == 'observer') options = {
             where: { state: "A" },
             attributes: { exclude: ['state'] },
             required: true,

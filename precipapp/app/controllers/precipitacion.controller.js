@@ -67,7 +67,8 @@ exports.getFiltro = async function (req, res, next) {
   if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
   if (!datos.fechaFin) fF = new Date(Date.now() + 82800000)
   else fF = datos.fechaFin
-  var role = getUserRole(req)
+  var role = await getUserRole(req)
+  console.log(role)
   var options
   if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
     if (role == 'observer') options = {
