@@ -66,8 +66,8 @@ exports.newExtrema = async function (req, res, next) {
                             + `\n   - Nombre: ` + est.nombre + "(" + est.codigo + ")"
                             + `\n   - Ubicacion: ` + division.nombre + ", " + d2.nombre + ", " + d1.nombre + ", " + pais.nombre
                             + `\n   - Latitud: ` + est.posicion.coordinates[0]
-                            + `\n   - Longitud: ` + est.posicion.coordinates[1] + " m.s.n.m."
-                            + `\n   - Altitud: ` + est.altitud
+                            + `\n   - Longitud: ` + est.posicion.coordinates[1]
+                            + `\n   - Altitud: ` + est.altitud + " m.s.n.m."
                             + `\nInformación del usuario:`
                             + `\n   - Nombre: ` + obs.User.nombre + " " + obs.User.apellido
                             + `\n   - Correo: ` + obs.User.email
