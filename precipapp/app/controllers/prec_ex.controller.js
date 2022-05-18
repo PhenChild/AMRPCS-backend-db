@@ -13,7 +13,6 @@ const Op = require('sequelize').Op
 exports.newExtrema = async function (req, res, next) {
     try {
         await Sequelize.sequelize.transaction(async (t) => {
-            console.log(req.body)
             await precipitacionesEx.create({
                 fecha: Date.parse(req.body.fecha),
                 inundacion: parseInt(req.body.inundacion),
@@ -101,7 +100,6 @@ exports.newExtrema = async function (req, res, next) {
             })
         })
     } catch (error) {
-        console.log(error)
         res.status(400).send({ message: error.message })
     }
 }
