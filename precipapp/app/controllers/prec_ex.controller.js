@@ -76,6 +76,7 @@ exports.newExtrema = async function (req, res, next) {
                         if (correoss[0]) for (var c of correoss) {
                             var transporter = nodemailer.createTransport({
                                 service: 'mail.ciifen.org',
+                                port: 587,
                                 auth: {
                                     user: 'alertas.volunclima@ciifen.org',
                                     pass: '3n0P4$till14D9'
