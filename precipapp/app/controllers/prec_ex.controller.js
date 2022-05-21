@@ -78,13 +78,13 @@ exports.newExtrema = async function (req, res, next) {
                                 service: 'mail.ciifen.org',
                                 port: 587,
                                 auth: {
-                                    user: 'alertas.volunclima@ciifen.org',
-                                    pass: '3n0P4$till14D9'
+                                    user: 'aaaa',
+                                    pass: 'aaa'
                                 }
                             });
 
                             var mailOptions = {
-                                from: 'alertas.volunclima@ciifen.org',
+                                from: 'aaa',
                                 to: c.email,
                                 subject: 'VOLUNCLIMA - ALERTA DE PRECIPITACIÓN EXTREMA - ' + est.nombre + "(" + est.codigo + ")",
                                 text: text
