@@ -21,7 +21,7 @@ exports.newExtrema = async function (req, res, next) {
                 deslizamiento: parseInt(req.body.deslizamiento),
                 vientos: parseInt(req.body.vientos),
                 comentario: req.body.comentario,
-                isNotificacion: req.body.notificacion,
+                isNotificacion: req.body.notificacion ? true: false,
                 idObservador: parseInt(req.obsId)
             }, { transaction: t }).then(async (ex) => {
                 if (req.body.notificacion) {
@@ -75,15 +75,15 @@ exports.newExtrema = async function (req, res, next) {
                         })
                         if (correoss[0]) for (var c of correoss) {
                             var transporter = nodemailer.createTransport({
-                                service: 'outlook',
+                                service: 'mail.ciifen.org',
                                 auth: {
-                                    user: 'micxarce@espol.edu.ec',
-                                    pass: 'Garchomp_00'
+                                    user: 'alertas.volunclima@ciifen.org',
+                                    pass: '3n0P4$till14D9'
                                 }
                             });
 
                             var mailOptions = {
-                                from: 'micxarce@espol.edu.ec',
+                                from: 'alertas.volunclima@ciifen.org',
                                 to: c.email,
                                 subject: 'VOLUNCLIMA - ALERTA DE PRECIPITACIÓN EXTREMA - ' + est.nombre + "(" + est.codigo + ")",
                                 text: text
