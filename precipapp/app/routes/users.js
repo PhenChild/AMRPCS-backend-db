@@ -71,6 +71,11 @@ router.post(
   user.updateUserImage)
 
 router.post(
+  '/update/picture',
+  upload.single('foto'),
+  user.updateImageMovil)
+
+router.post(
   '/updateUserPass',
   [authJwt.verifyToken, authJwt.isObserver],
   user.updateUserPass)
@@ -83,7 +88,7 @@ router.post(
 router.get(
   '/getUserPicture',
   [authJwt.verifyToken, authJwt.isObserver],
-  user.getImage)
+  user.getImageWeb)
 
 router.get('/getAll/filtro',
   [authJwt.verifyUser],

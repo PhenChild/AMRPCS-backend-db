@@ -586,7 +586,7 @@ getUsuariosNombreRolEmailPais = async function (nombre, role, correo, pai, res, 
   }
 }
 
-exports.getImage = async function (req, res, next) {
+exports.getImageWeb = async function (req, res, next) {
   try {
     await user.findOne({
       where: { id: req.userId },
@@ -863,6 +863,26 @@ exports.updateImage = async function (req, res, next) {
       }, {
         where: {
           id: parseInt(req.body.id)
+        },
+        returning: true,
+        plain: true
+      }, { transaction: t })
+    })
+    res.status(200).send({ message: 'Succesfully updated' })
+  } catch (error) {
+    res.status(419).send({ message: error.message })
+  }
+}
+
+exports.updateImageMovil = async function (req, res, next) {
+  try {
+
+    await Sequelize.sequelize.transaction(async (t) => {
+      var u = await user.update({
+        foto: Buffer.from(req.file.buffer)
+      }, {
+        where: {
+          id: parseInt(req.body.idUser)
         },
         returning: true,
         plain: true
