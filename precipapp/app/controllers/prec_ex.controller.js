@@ -78,13 +78,13 @@ exports.newExtrema = async function (req, res, next) {
                                 service: 'mail.ciifen.org',
                                 port: 587,
                                 auth: {
-                                    user: 'aaaa',
-                                    pass: 'aaa'
+                                    user: 'alertas.volunclima@ciifen.org',
+                                    pass: '3n0P4$till14D9'
                                 }
                             });
 
                             var mailOptions = {
-                                from: 'aaa',
+                                from: 'alertas.volunclima@ciifen.org',
                                 to: c.email,
                                 subject: 'VOLUNCLIMA - ALERTA DE PRECIPITACIÓN EXTREMA - ' + est.nombre + "(" + est.codigo + ")",
                                 text: text
@@ -210,7 +210,7 @@ exports.getFiltro = async function (req, res, next) {
     var fF
     if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
     if (!datos.fechaFin) fF = new Date(Date.now() + 82800000)
-    else fF = datos.fechaFin
+    else fF = new Date(Date.parse(datos.fechaFin) + 82800000)
     var role = await getUserRole(req)
 
     var options

@@ -777,7 +777,7 @@ exports.updateUsers = async function (req, res, next) {
         apellido: req.body.usuario.apellido,
         telefono: req.body.usuario.telefono,
         genero: req.body.usuario.genero,
-        idOcupacion: parseInt(req.body.usuario.idOcupacion),
+        idOcupacion: (parseInt(req.body.usuario.idOcupacion)) ? parseInt(req.body.usuario.idOcupacion): null,
         idPais: parseInt(req.body.usuario.idPais)
       }, {
         where: {

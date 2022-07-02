@@ -66,7 +66,7 @@ exports.getFiltro = async function (req, res, next) {
   var fF
   if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
   if (!datos.fechaFin) fF = new Date(Date.now() + 82800000)
-  else fF = datos.fechaFin
+  else fF = new Date(Date.parse(datos.fechaFin) + 82800000)
   var role = await getUserRole(req)
   var options
   if (datos.pais && datos.observador && datos.estacion && datos.codigo && (datos.fechaInicio || datos.fechaFin)) {
@@ -937,7 +937,7 @@ getDatosGraficos = async function (req, res, next) {
   var jsonArray = []
 
   var est = await estaciones.findAll({
-    where: { [Op.or]: [{ nombre: nombreEstacion }, { codigo: nombreEstacion }], state: 'A' },
+    where: { [Op.or]: [{ nombre: {[Op.iLike]: nombreEstacion}}, { codigo: {[Op.iLike]: nombreEstacion} }], state: 'A' },
     attributes: { exclude: ['foto'] }
   })
     .then(estacion => {

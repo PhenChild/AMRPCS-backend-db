@@ -226,12 +226,11 @@ getCuestionarios = async function (options, req, res, next) {
 
 exports.getFiltro = async function (req, res, next) {
     var datos = req.query
-
     var fI = datos.fechaInicio
     var fF
     if (!datos.fechaInicio) fI = new Date('December 17, 1995 03:24:00')
     if (!datos.fechaFin) fF = new Date(Date.now() + 82800000)
-    else fF = datos.fechaFin
+    else fF = new Date(Date.parse(datos.fechaFin) + 82800000)
     var role = await getUserRole(req)
 
 

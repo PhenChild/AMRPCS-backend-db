@@ -121,7 +121,7 @@ exports.signup = async (req, res) => {
       apellido: req.body.apellido,
       telefono: req.body.telefono,
       genero: req.body.genero,
-      idOcupacion: parseInt(req.body.idOcupacion),
+      idOcupacion: (parseInt(req.body.idOcupacion)) ? parseInt(req.body.idOcupacion): null,
       idPais: parseInt(req.body.idPais),
       state: 'A',
       foto: a,
