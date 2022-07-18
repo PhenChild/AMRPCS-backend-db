@@ -20,7 +20,7 @@ getUserRole = async function (req) {
 getDivisiones = async function (options, role, req, res, next) {
   try {
     var resDivisiones = await divisiones.findAll(options)
-      
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -50,7 +50,7 @@ module.exports.getDivisiones = getDivisiones
 
 exports.getFiltro = async function (req, res, next) {
   var datos = req.query
-  
+
   var role = getUserRole(req)
   var options
   if (datos.nombre && datos.pais && datos.nivel) {
@@ -142,7 +142,7 @@ exports.getFiltro = async function (req, res, next) {
     }
     else options = {
       include: [{
-        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' }}
+        model: pais, required: true, where: { nombre: { [Op.iLike]: '%' + datos.pais + '%' } }
       }]
     }
   }
@@ -155,12 +155,12 @@ exports.getFiltro = async function (req, res, next) {
       }]
     }
     else options = {
-      where: { nivel: parseInt(datos.nivel)},
+      where: { nivel: parseInt(datos.nivel) },
       include: [{
         model: pais, required: true
       }]
     }
-  } 
+  }
   else {
     if (role == 'observer') options = {
       where: { state: "A" },
@@ -174,7 +174,7 @@ exports.getFiltro = async function (req, res, next) {
         model: pais, required: true
       }]
     }
-  } 
+  }
   getDivisiones(options, role, req, res, next)
 
 }
@@ -193,7 +193,7 @@ getDivisionesNombre = async function (nombre, res, next) {
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -206,10 +206,10 @@ getDivisionesNombre = async function (nombre, res, next) {
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      
+
       arrayJson.push(datosDivision)
     }
-    
+
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -230,7 +230,7 @@ getDivisionesPais = async function (nombrePais, res, next) {
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -243,10 +243,10 @@ getDivisionesPais = async function (nombrePais, res, next) {
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      
+
       arrayJson.push(datosDivision)
     }
-    
+
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -267,7 +267,7 @@ getDivisionesNivel = async function (nivel, res, next) {
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -280,10 +280,10 @@ getDivisionesNivel = async function (nivel, res, next) {
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      
+
       arrayJson.push(datosDivision)
     }
-    
+
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -304,7 +304,7 @@ getDivisionesNombreNivel = async function (nombre, nivel, res, next) {
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -317,10 +317,10 @@ getDivisionesNombreNivel = async function (nombre, nivel, res, next) {
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      
+
       arrayJson.push(datosDivision)
     }
-    
+
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -341,7 +341,7 @@ getDivisionesNombrePais = async function (nombre, nombrePais, res, next) {
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -354,10 +354,10 @@ getDivisionesNombrePais = async function (nombre, nombrePais, res, next) {
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      
+
       arrayJson.push(datosDivision)
     }
-    
+
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -378,7 +378,7 @@ getDivisionesPaisNivel = async function (nombrePais, nivel, res, next) {
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -391,10 +391,10 @@ getDivisionesPaisNivel = async function (nombrePais, nivel, res, next) {
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      
+
       arrayJson.push(datosDivision)
     }
-    
+
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -415,7 +415,7 @@ getDivisionesNombrePaisNivel = async function (nombre, nombrePais, nivel, res, n
         resDivisiones = divisiones
       })
       .catch(err => res.json(err.message))
-    
+
     var arrayJson = []
     for (p of resDivisiones) {
       let datosDivision = p.dataValues
@@ -428,10 +428,10 @@ getDivisionesNombrePaisNivel = async function (nombre, nombrePais, nivel, res, n
         nombrePadre = padre.nombre
       }
       datosDivision.nombrePadre = nombrePadre
-      
+
       arrayJson.push(datosDivision)
     }
-    
+
     res.json(arrayJson)
   } catch (error) {
     res.status(400).send({ message: error.message })
@@ -443,6 +443,31 @@ exports.getDivisionesDivisiones = async function (req, res, next) {
   if (nuevoNivel == 0) {
     res.json({})
   }
+  else if (nuevoNivel == 2) {
+    console.log("eddasd")
+    try {
+      var divs = await divisiones.findAll({
+        where: { state: "A", idPais: parseInt(req.body.idPais), nivel: nuevoNivel },
+        attributes: { exclude: ['state'] }
+      })
+      var arr = []
+      for (var div of divs) {
+        var divSuperior = await divisiones.findOne({
+          where: { state: "A", id: div.idPadre, nivel: nuevoNivel - 1 }
+        })
+        var json = {
+          id: div.id,
+          idPadre: div.idPadre,
+          nivel: div.nivel,
+          nombre: divSuperior.nombre + ', ' + div.nombre
+        }
+        arr.push(json)
+      }
+      res.json(arr)
+    } catch (error) {
+      res.status(400).send({ message: error.message })
+    }
+  }
   else {
     try {
       await divisiones.findAll({
@@ -450,7 +475,7 @@ exports.getDivisionesDivisiones = async function (req, res, next) {
         attributes: { exclude: ['state'] }
       })
         .then(divisiones => {
-          
+
           res.json(divisiones)
         })
         .catch(err => res.json(err.message))
@@ -462,7 +487,7 @@ exports.getDivisionesDivisiones = async function (req, res, next) {
 
 
 exports.getDivisionesInferiores = async function (req, res, next) {
-  
+
   var nuevoNivel = parseInt(req.body.nivel) + 1
   if (nuevoNivel == 4) {
     res.json({})
@@ -474,7 +499,7 @@ exports.getDivisionesInferiores = async function (req, res, next) {
         attributes: { exclude: ['state'] }
       })
         .then(divisiones => {
-          
+
           res.json(divisiones)
         })
         .catch(err => res.json(err.message))
@@ -485,7 +510,7 @@ exports.getDivisionesInferiores = async function (req, res, next) {
 }
 
 exports.getDivisionesPaisNivelOne = async function (req, res, next) {
-  
+
   try {
     await divisiones.findAll({
       where: { state: "A", idPais: parseInt(req.body.idPais), nivel: 1 },
@@ -520,7 +545,7 @@ exports.newDivision = async function (req, res, next) {
     let ip
     if (parseInt(req.body.nivel) > 1) ip = parseInt(req.body.idPadre)
     else ip = null
-    
+
     await divisiones.create({
       idPais: parseInt(req.body.idPais),
       idPadre: ip,
@@ -537,7 +562,7 @@ exports.newDivision = async function (req, res, next) {
 
 exports.updateDivision = async function (req, res, next) {
   try {
-    
+
     await Sequelize.sequelize.transaction(async (t) => {
       const d = await divisiones.update({
         nombre: req.body.nombre,
@@ -556,7 +581,7 @@ exports.updateDivision = async function (req, res, next) {
 
 exports.disableDivision = async function (req, res, next) {
   try {
-    
+
     await Sequelize.sequelize.transaction(async (t) => {
       await divisiones.update({
         state: 'I',
@@ -576,7 +601,7 @@ exports.disableDivision = async function (req, res, next) {
         var estaciones = await estacion.findAll({
           where: { idUbicacion: parseInt(req.body.id) }
         })
-        
+
         for (var e of estaciones) {
           await observer.update({
             state: 'I',
@@ -607,7 +632,7 @@ exports.disableDivision = async function (req, res, next) {
           var estaciones = await estacion.findAll({
             where: { idUbicacion: divi.id }
           })
-          
+
           for (var e of estaciones) {
             await observer.update({
               state: 'I',
@@ -649,7 +674,7 @@ exports.disableDivision = async function (req, res, next) {
             var estaciones = await estacion.findAll({
               where: { idUbicacion: divi.id }
             })
-            
+
             for (var e of estaciones) {
               await observer.update({
                 state: 'I',
@@ -670,7 +695,7 @@ exports.disableDivision = async function (req, res, next) {
 
 exports.activateDivision = async function (req, res, next) {
   try {
-    
+
     await Sequelize.sequelize.transaction(async (t) => {
 
       var p = await pais.findOne({
@@ -680,7 +705,7 @@ exports.activateDivision = async function (req, res, next) {
       })
 
       var d = await divisiones.findOne({
-        where:{
+        where: {
           id: parseInt(req.body.idPadre),
           state: 'A'
         }
@@ -691,11 +716,11 @@ exports.activateDivision = async function (req, res, next) {
         }, {
           where: { id: parseInt(req.body.id) }, returning: true, plain: true
         })
-  
+
         res.status(200).send({ message: 'Succesfully Activated' })
       }
       else res.status(418).send({ message: 'El Pais esta desactivada' })
-      
+
     }).catch(err => {
       res.status(400).send({ message: err.message })
     })
